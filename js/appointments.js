@@ -218,6 +218,10 @@ function initGlobalAppointmentModal() {
     document.body.style.overflow = '';
   };
 
+  // Expose global methods
+  window.openAppointmentModal = openModal;
+  window.closeAppointmentModal = closeModal;
+
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closeModal();
@@ -226,13 +230,46 @@ function initGlobalAppointmentModal() {
     if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
   });
 
-  // Attach to explicit modal trigger elements (e.g. data-open-modal="appointment" or .open-appointment-modal)
+  // Universal click listener to open the Appointment Modal
   document.addEventListener('click', (e) => {
-    const target = e.target.closest('[data-open-modal="appointment"], .open-appointment-modal');
-    if (target) {
+    // 1. Explicit data attributes & classes & Bootstrap modal triggers
+    const explicitTrigger = e.target.closest('[data-open-modal="appointment"], .open-appointment-modal, [data-bs-toggle="modal"], [data-toggle="modal"], a[href="#book"], a[href="#book-appointment"], a[href="#appointment"], a[href="#appointment-modal"]');
+    if (explicitTrigger) {
       e.preventDefault();
-      const treatmentId = target.getAttribute('data-treatment-id') || '';
+      const treatmentId = explicitTrigger.getAttribute('data-treatment-id') || '';
       openModal(treatmentId);
+      return;
+    }
+
+    // 2. Any button or link whose text explicitly says "Book an Appointment", "Book Consultation", "Book Treatment"
+    const clickable = e.target.closest('button, a.btn-primary, a.btn-secondary, a.btn-white, .btn, a');
+    if (clickable) {
+      // Exclude regular main navigation links (like the "Contact" page nav link)
+      if (clickable.classList.contains('nav-link') || clickable.classList.contains('mobile-nav-link')) {
+        return;
+      }
+      
+      // Exclude forms submissions
+      if (clickable.type === 'submit' || clickable.closest('#appointment-booking-form') || clickable.closest('#modal-appointment-form')) {
+        return;
+      }
+
+      const text = (clickable.textContent || '').trim().toLowerCase();
+      const isBookingBtn = (
+        text.includes('book an appointment') ||
+        text.includes('book appointment') ||
+        text.includes('book consultation') ||
+        text.includes('book treatment') ||
+        text.includes('book your consultation') ||
+        text.includes('schedule consultation') ||
+        text.includes('request an appointment')
+      );
+
+      if (isBookingBtn) {
+        e.preventDefault();
+        const treatmentId = clickable.getAttribute('data-treatment-id') || '';
+        openModal(treatmentId);
+      }
     }
   });
 
