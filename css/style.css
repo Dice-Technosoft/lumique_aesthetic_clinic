@@ -671,6 +671,7 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: 6rem;
   padding-bottom: 6rem;
   overflow: hidden;
+  background-color: var(--color-charcoal);
 }
 
 .hero-bg {
@@ -689,13 +690,13 @@ h1, h2, h3, h4, h5, h6 {
 .hero-overlay-dark {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(31, 31, 31, 0.88) 0%, rgba(31, 31, 31, 0.6) 50%, rgba(31, 31, 31, 0.25) 100%);
+  background: linear-gradient(135deg, rgba(18, 18, 22, 0.82) 0%, rgba(18, 18, 22, 0.6) 50%, rgba(18, 18, 22, 0.75) 100%);
 }
 
 .hero-overlay-bottom {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, var(--color-ivory) 0%, transparent 20%);
+  background: linear-gradient(to top, rgba(18, 18, 22, 0.95) 0%, rgba(18, 18, 22, 0.35) 15%, transparent 30%);
 }
 
 .hero-content {
