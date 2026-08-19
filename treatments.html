@@ -105,7 +105,10 @@
         <a href="contact.html" class="mobile-nav-link">Contact</a>
       </nav>
       <div class="mobile-drawer-footer">
-        <a href="contact.html" class="btn-primary" style="width: 100%;">Book Appointment</a>
+        <button type="button" class="btn-primary open-appointment-modal" data-open-modal="appointment" style="width: 100%; justify-content: center;" onclick="document.querySelector('.mobile-drawer')?.classList.remove('open'); document.body.style.overflow=''; if(window.openAppointmentModal) window.openAppointmentModal();">
+          <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+          <span>Book Appointment</span>
+        </button>
       </div>
     </div>
   </div>
@@ -198,9 +201,9 @@
 
       <div class="footer-bottom">
         <p>&copy; 2026 Lumique Aesthetic Clinic. All rights reserved.</p>
-        <div style="display: flex; gap: 1.5rem;">
-          <a href="admin.html" style="color: rgba(255, 255, 255, 0.4);">Admin Portal</a>
-        </div>
+        <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.65);">
+          Designed & Developed by <a href="https://dicetechnosoft.cloud" target="_blank" rel="noopener noreferrer" style="color: #F5D67D; font-weight: 600; text-decoration: none; transition: color 0.2s ease;">Dice Technosoft</a>
+        </p>
       </div>
     </div>
   </footer>

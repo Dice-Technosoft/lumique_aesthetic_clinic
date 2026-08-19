@@ -1707,6 +1707,7 @@ textarea.form-control {
 /* --- Custom Scrollbar --- */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 0px;
 }
 ::-webkit-scrollbar-track {
   background: var(--color-ivory);
@@ -1717,6 +1718,30 @@ textarea.form-control {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-crimson);
+}
+
+/* --- Hide Horizontal Scrollbars for Navigation Bars --- */
+.category-subnav > div,
+.category-subnav .container-luxury,
+.blog-filter-bar > div,
+.blog-filter-bar .container-luxury,
+.no-scrollbar,
+.hide-scrollbar,
+[style*="overflow-x: auto"] {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.category-subnav > div::-webkit-scrollbar,
+.category-subnav .container-luxury::-webkit-scrollbar,
+.blog-filter-bar > div::-webkit-scrollbar,
+.blog-filter-bar .container-luxury::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar,
+[style*="overflow-x: auto"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* --- Treatments Category Navigation Filter Bar --- */
