@@ -63,11 +63,13 @@ function initMobileNav() {
 
   const openDrawer = () => {
     drawer.classList.add('open');
+    document.body.classList.add('menu-open');
     document.body.style.overflow = 'hidden';
   };
 
   const closeDrawer = () => {
     drawer.classList.remove('open');
+    document.body.classList.remove('menu-open');
     document.body.style.overflow = '';
   };
 

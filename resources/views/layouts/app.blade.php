@@ -183,7 +183,7 @@
                     <i data-lucide="phone" style="width: 18px; height: 18px; color: var(--color-crimson);"></i>
                     <span>{{ $settings['phone'] ?? '+91 88795 50581' }}</span>
                 </a>
-                <button type="button" class="btn-primary open-appointment-modal" style="width: 100%; justify-content: center;" onclick="document.querySelector('.mobile-drawer')?.classList.remove('open'); document.body.style.overflow=''; openAppointmentModal();">
+                <button type="button" class="btn-primary open-appointment-modal" style="width: 100%; justify-content: center;" onclick="document.querySelector('.mobile-drawer')?.classList.remove('open'); document.body.classList.remove('menu-open'); document.body.style.overflow=''; openAppointmentModal();">
                     <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
                     <span>Book Appointment</span>
                 </button>

@@ -596,7 +596,7 @@ h1, h2, h3, h4, h5, h6 {
 .mobile-drawer {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 990;
   pointer-events: none;
   visibility: hidden;
   transition: visibility 0.4s ease;
@@ -1821,7 +1821,7 @@ textarea.form-control {
   background-color: rgba(18, 18, 22, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 100;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2069,7 +2069,7 @@ textarea.form-control {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 90;
+  z-index: 80;
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
@@ -2081,6 +2081,28 @@ textarea.form-control {
   box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
   transition: var(--transition-smooth);
   text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-floating-btn {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}
+
+/* Hide floating WhatsApp when mobile drawer or modal is open */
+.mobile-drawer.open ~ .whatsapp-floating-btn,
+.lumique-modal-backdrop.open ~ .whatsapp-floating-btn,
+body:has(.mobile-drawer.open) .whatsapp-floating-btn,
+body:has(.lumique-modal-backdrop.open) .whatsapp-floating-btn,
+body.menu-open .whatsapp-floating-btn,
+body.modal-open .whatsapp-floating-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: scale(0.6) !important;
 }
 
 .whatsapp-floating-btn:hover {
