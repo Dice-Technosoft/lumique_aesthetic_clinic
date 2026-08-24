@@ -20,4 +20,9 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+/public/storage
+/public/hot
 .env
+.env.backup
+.env.production
+.phpunit.result.cache
