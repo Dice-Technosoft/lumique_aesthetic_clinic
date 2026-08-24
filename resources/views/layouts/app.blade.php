@@ -203,8 +203,8 @@
                 <!-- Col 1: Brand -->
                 <div>
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-                        <span class="brand-logo-img-wrapper" style="width: 2.5rem; height: 2.5rem;">
-                            <img src="{{ $siteLogo }}" alt="{{ $settings['site_name'] ?? 'Lumique' }} logo" class="brand-logo-img">
+                        <span class="brand-logo-img-wrapper" style="height: 2.5rem;">
+                            <img src="{{ $siteLogo }}" alt="{{ $settings['site_name'] ?? 'Lumique' }} logo" class="brand-logo-img" style="height: 2.5rem; max-height: 40px;">
                         </span>
                         <div class="brand-logo-text">
                             <span class="brand-logo-name" style="color: #ffffff; font-size: 1.125rem;">LUMIQUE</span>

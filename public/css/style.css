@@ -375,20 +375,23 @@ h1, h2, h3, h4, h5, h6 {
 
 .brand-logo-img-wrapper {
   position: relative;
-  width: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 2.75rem;
+  max-height: 48px;
   flex-shrink: 0;
-  overflow: hidden;
-  background-color: var(--color-crimson);
 }
 
 .brand-logo-img {
-  position: absolute;
-  left: 0;
-  top: -64.5%;
-  height: 233%;
-  width: 100%;
-  object-fit: fill;
+  height: 2.75rem;
+  max-height: 44px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
+  transition: transform 0.3s ease;
 }
 
 .brand-logo-text {
