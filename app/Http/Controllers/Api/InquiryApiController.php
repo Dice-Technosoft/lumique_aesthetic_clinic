@@ -66,8 +66,85 @@ class InquiryApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Inquiry updated successfully',
+            'message' => 'Inquiry status updated successfully',
             'data' => $updated,
+        ]);
+    }
+
+    public function update(Request $request, Inquiry $inquiry): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'email' => 'required|email|max:150',
+            'phone' => 'required|string|max:30',
+            'service_id' => 'nullable|exists:services,id',
+            'service_name' => 'nullable|string|max:150',
+            'preferred_date' => 'nullable|date',
+            'preferred_time' => 'nullable|string|max:50',
+            'status' => 'required|string|in:new,contacted,in_progress,converted,closed,spam',
+            'priority' => 'nullable|string|in:low,medium,high',
+            'message' => 'nullable|string|max:3000',
+        ]);
+
+        if (!empty($validated['service_id'])) {
+            $service = \App\Models\Service::find($validated['service_id']);
+            $validated['service_name'] = $service?->title ?? $validated['service_name'] ?? null;
+        }
+
+        $inquiry->update($validated);
+
+        if ($inquiry->lead) {
+            $inquiry->lead->update([
+                'name' => $inquiry->name,
+                'email' => $inquiry->email,
+                'phone' => $inquiry->phone,
+                'service_id' => $inquiry->service_id,
+                'service_name' => $inquiry->service_name,
+                'status' => $inquiry->status,
+                'priority' => $inquiry->priority,
+                'preferred_date' => $inquiry->preferred_date,
+                'preferred_time' => $inquiry->preferred_time,
+                'notes' => $inquiry->message,
+            ]);
+        }
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'module' => 'inquiries',
+            'action' => 'inquiry_updated',
+            'record_id' => $inquiry->id,
+            'new_values' => $validated,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Inquiry updated successfully',
+            'data' => $inquiry->fresh(['service', 'assignedUser']),
+        ]);
+    }
+
+    public function destroy(Request $request, Inquiry $inquiry): JsonResponse
+    {
+        $id = $inquiry->id;
+        $name = $inquiry->name;
+
+        if ($inquiry->lead) {
+            $inquiry->lead->delete();
+        }
+
+        $inquiry->delete();
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'module' => 'inquiries',
+            'action' => 'inquiry_deleted',
+            'record_id' => $id,
+            'notes' => "Deleted inquiry #{$id} ({$name})",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Inquiry deleted successfully',
         ]);
     }
 

@@ -70,8 +70,9 @@ class AdminWebController extends Controller
 
         $inquiries = $query->paginate(15)->withQueryString();
         $users = User::all();
+        $services = Service::published()->orderBy('title', 'asc')->get();
 
-        return view('admin.inquiries', compact('settings', 'inquiries', 'users', 'status', 'type', 'search'));
+        return view('admin.inquiries', compact('settings', 'inquiries', 'users', 'services', 'status', 'type', 'search'));
     }
 
     public function leads(Request $request): View
