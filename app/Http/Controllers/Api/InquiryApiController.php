@@ -20,11 +20,16 @@ class InquiryApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Inquiry::with('assignedUser:id,name', 'service:id,title')->latest();
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
+        
+        // Filter by type (default to contact form inquiries only)
         if ($request->has('type')) {
             $query->where('type', $request->type);
+        } else {
+            $query->where('type', 'contact');
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
         }
         if ($request->has('search')) {
             $s = $request->search;
@@ -145,6 +150,91 @@ class InquiryApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Inquiry deleted successfully',
+        ]);
+    }
+
+    public function convertToAppointment(Request $request, Inquiry $inquiry): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'email' => 'required|email|max:150',
+            'phone' => 'required|string|max:30',
+            'service_id' => 'nullable|exists:services,id',
+            'service_name' => 'nullable|string|max:150',
+            'preferred_date' => 'required|date',
+            'preferred_time' => 'nullable|string|max:50',
+            'priority' => 'nullable|string|in:low,medium,high',
+            'estimated_value' => 'nullable|numeric',
+            'notes' => 'nullable|string|max:3000',
+        ]);
+
+        if (!empty($validated['service_id'])) {
+            $service = \App\Models\Service::find($validated['service_id']);
+            $validated['service_name'] = $service?->title ?? $validated['service_name'] ?? null;
+        }
+
+        // Mark existing inquiry as converted
+        $inquiry->status = 'converted';
+        $inquiry->save();
+
+        // Create or update Lead / Appointment record
+        $lead = $inquiry->lead;
+        if (!$lead) {
+            $lead = new \App\Models\Lead();
+            $lead->inquiry_id = $inquiry->id;
+        }
+        $lead->name = $validated['name'];
+        $lead->email = $validated['email'];
+        $lead->phone = $validated['phone'];
+        $lead->service_id = $validated['service_id'] ?? null;
+        $lead->service_name = $validated['service_name'] ?? 'General Consultation';
+        $lead->preferred_date = $validated['preferred_date'];
+        $lead->preferred_time = $validated['preferred_time'] ?? null;
+        $lead->status = 'consultation_scheduled';
+        $lead->priority = $validated['priority'] ?? 'medium';
+        $lead->estimated_value = $validated['estimated_value'] ?? null;
+        $lead->notes = $validated['notes'] ?? $inquiry->message;
+        $lead->save();
+
+        // Create Appointment Inquiry instance for Email Templates
+        $appointmentInquiry = new Inquiry([
+            'name' => $lead->name,
+            'email' => $lead->email,
+            'phone' => $lead->phone,
+            'service_name' => $lead->service_name,
+            'preferred_date' => $lead->preferred_date,
+            'preferred_time' => $lead->preferred_time,
+            'type' => 'appointment',
+            'message' => $lead->notes,
+        ]);
+        $appointmentInquiry->id = $inquiry->id;
+
+        // Dispatch Dual Emails
+        \App\Jobs\SendAppointmentThankYouJob::dispatch($appointmentInquiry);
+        \App\Jobs\SendAppointmentNotificationJob::dispatch($appointmentInquiry);
+
+        \App\Models\LeadActivity::create([
+            'lead_id' => $lead->id,
+            'user_id' => $request->user()?->id,
+            'activity_type' => 'converted_from_inquiry',
+            'description' => "Inquiry #{$inquiry->id} converted to confirmed Appointment scheduled for {$lead->preferred_date->format('M d, Y')}.",
+        ]);
+
+        ActivityLog::create([
+            'user_id' => $request->user()?->id,
+            'module' => 'inquiries',
+            'action' => 'converted_to_appointment',
+            'record_id' => $inquiry->id,
+            'notes' => "Converted inquiry #{$inquiry->id} ({$inquiry->name}) into appointment #{$lead->id}",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Inquiry successfully converted to Appointment! Confirmation emails dispatched to patient and admin.',
+            'data' => [
+                'lead_id' => $lead->id,
+                'inquiry_id' => $inquiry->id,
+            ],
         ]);
     }
 

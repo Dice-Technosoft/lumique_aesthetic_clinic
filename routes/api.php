@@ -56,9 +56,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/inquiries', [InquiryApiController::class, 'index']);
         Route::put('/inquiries/{inquiry}/status', [InquiryApiController::class, 'updateStatus']);
         Route::put('/inquiries/{inquiry}', [InquiryApiController::class, 'update']);
+        Route::post('/inquiries/{inquiry}/convert-to-appointment', [InquiryApiController::class, 'convertToAppointment']);
         Route::delete('/inquiries/{inquiry}', [InquiryApiController::class, 'destroy']);
 
-        // Patient CRM Leads Pipeline
+        // Patient CRM Appointments & Leads Pipeline
+        Route::get('/patients/search', [LeadApiController::class, 'searchPatients']);
         Route::get('/leads', [LeadApiController::class, 'index']);
         Route::post('/leads', [LeadApiController::class, 'store']);
         Route::put('/leads/{lead}', [LeadApiController::class, 'update']);

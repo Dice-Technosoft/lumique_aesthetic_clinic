@@ -42,6 +42,43 @@ class LeadApiController extends Controller
         ]);
     }
 
+    public function searchPatients(Request $request): JsonResponse
+    {
+        $q = trim($request->query('q', ''));
+        if (strlen($q) < 1) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $leadPatients = Lead::where(function ($query) use ($q) {
+            $query->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%")
+                  ->orWhere('phone', 'like', "%{$q}%");
+        })
+        ->select('name', 'email', 'phone', 'service_name', 'created_at')
+        ->latest()
+        ->limit(10)
+        ->get();
+
+        $inquiryPatients = \App\Models\Inquiry::where(function ($query) use ($q) {
+            $query->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%")
+                  ->orWhere('phone', 'like', "%{$q}%");
+        })
+        ->select('name', 'email', 'phone', 'service_name', 'created_at')
+        ->latest()
+        ->limit(10)
+        ->get();
+
+        $merged = $leadPatients->concat($inquiryPatients)->unique(function ($item) {
+            return strtolower(trim($item->name) . '_' . trim($item->phone));
+        })->values()->take(8);
+
+        return response()->json([
+            'success' => true,
+            'data' => $merged,
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -50,6 +87,8 @@ class LeadApiController extends Controller
             'phone' => 'required|string|max:30',
             'service_name' => 'nullable|string',
             'service_id' => 'nullable|exists:services,id',
+            'preferred_date' => 'nullable|date',
+            'preferred_time' => 'nullable|string|max:50',
             'lead_source_id' => 'nullable|exists:lead_sources,id',
             'status' => 'nullable|string',
             'priority' => 'nullable|string',
@@ -58,10 +97,39 @@ class LeadApiController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        if (!empty($data['service_id']) && empty($data['service_name'])) {
+            $svc = \App\Models\Service::find($data['service_id']);
+            $data['service_name'] = $svc?->title;
+        }
+
         $lead = $this->leadService->createLead($data, $request->user());
+
+        // Create linked inquiry record with appointment type for CRM sync & email triggers
+        $inquiry = \App\Models\Inquiry::create([
+            'name' => $lead->name,
+            'email' => $lead->email,
+            'phone' => $lead->phone,
+            'service_id' => $lead->service_id,
+            'service_name' => $lead->service_name,
+            'preferred_date' => $lead->preferred_date,
+            'preferred_time' => $lead->preferred_time,
+            'source' => 'Admin Appointment Desk',
+            'type' => 'appointment',
+            'status' => $lead->status ?? 'new',
+            'priority' => $lead->priority ?? 'medium',
+            'message' => $lead->notes,
+        ]);
+
+        $lead->inquiry_id = $inquiry->id;
+        $lead->save();
+
+        // Dispatch dual emails (patient confirmation + admin notification)
+        \App\Jobs\SendAppointmentThankYouJob::dispatch($inquiry);
+        \App\Jobs\SendAppointmentNotificationJob::dispatch($inquiry);
+
         return response()->json([
             'success' => true,
-            'message' => 'Lead created successfully',
+            'message' => 'Appointment created successfully! Confirmation emails dispatched.',
             'data' => $lead,
         ], 201);
     }
@@ -73,15 +141,25 @@ class LeadApiController extends Controller
             'email' => 'required|email|max:150',
             'phone' => 'required|string|max:30',
             'service_name' => 'nullable|string',
+            'service_id' => 'nullable|exists:services,id',
+            'preferred_date' => 'nullable|date',
+            'preferred_time' => 'nullable|string|max:50',
             'status' => 'nullable|string',
+            'priority' => 'nullable|string',
             'estimated_value' => 'nullable|numeric',
+            'notes' => 'nullable|string',
         ]);
+
+        if (!empty($data['service_id']) && empty($data['service_name'])) {
+            $svc = \App\Models\Service::find($data['service_id']);
+            $data['service_name'] = $svc?->title;
+        }
 
         $lead->update($data);
 
         return response()->json([
             'success' => true,
-            'message' => 'Lead updated successfully in database',
+            'message' => 'Appointment updated successfully in database',
             'data' => $lead,
         ]);
     }

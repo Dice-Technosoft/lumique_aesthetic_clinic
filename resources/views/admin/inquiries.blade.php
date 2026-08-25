@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'Inquiries Management')
+@section('title', 'Contact Inquiries - Lumique Clinic Admin')
 @section('breadcrumb_parent', 'Clinic CRM')
-@section('breadcrumb_current', 'Inquiries & Bookings')
-@section('page_title', 'Inquiry & Booking Submissions')
+@section('breadcrumb_current', 'Contact Inquiries')
+@section('page_title', 'Website Contact Inquiries')
 
 @section('content')
 <div class="admin-panel-card">
@@ -32,12 +32,12 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">ID</th>
-                    <th style="width: 21%;">Patient Name</th>
-                    <th style="width: 19%;">Contact Info</th>
-                    <th style="width: 15%;">Type / Service</th>
-                    <th style="width: 12%;">Date Requested</th>
+                    <th style="width: 20%;">Patient Name</th>
+                    <th style="width: 18%;">Contact Info</th>
+                    <th style="width: 15%;">Procedure Interest</th>
+                    <th style="width: 12%;">Inquiry Date</th>
                     <th style="width: 12%;">Status</th>
-                    <th style="width: 16%; text-align: right;">Actions</th>
+                    <th style="width: 18%; text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,7 +47,7 @@
                     <td>
                         <strong class="inq-patient-name">{{ $inq->name }}</strong>
                         @if($inq->message)
-                        <div class="small text-muted inq-patient-msg" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $inq->message }}">
+                        <div class="small text-muted inq-patient-msg" style="max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $inq->message }}">
                             "{{ $inq->message }}"
                         </div>
                         @endif
@@ -57,13 +57,13 @@
                         <small><a href="mailto:{{ $inq->email }}" class="text-muted inq-patient-email">{{ $inq->email }}</a></small>
                     </td>
                     <td>
-                        <span class="badge {{ $inq->type === 'appointment' ? 'badge-gold' : 'badge-neutral' }} inq-service-badge">
-                            {{ $inq->service_name ?: ($inq->service->title ?? ucfirst($inq->type)) }}
+                        <span class="badge {{ $inq->status === 'converted' ? 'badge-gold' : 'badge-neutral' }} inq-service-badge">
+                            {{ $inq->service_name ?: ($inq->service->title ?? 'General Inquiry') }}
                         </span>
                     </td>
                     <td>
-                        <span class="inq-requested-date">{{ $inq->preferred_date ? $inq->preferred_date->format('M d, Y') : 'Immediate' }}</span>
-                        @if($inq->preferred_time)<br><small class="text-muted inq-requested-time">{{ $inq->preferred_time }}</small>@endif
+                        <span class="inq-requested-date">{{ $inq->created_at ? $inq->created_at->format('M d, Y') : '-' }}</span>
+                        <br><small class="text-muted">{{ $inq->created_at ? $inq->created_at->format('h:i A') : '' }}</small>
                     </td>
                     <td>
                         <select onchange="updateInquiryStatus({{ $inq->id }}, this.value)" class="status-select status-{{ $inq->status }}">
@@ -77,6 +77,17 @@
                     </td>
                     <td style="text-align: right;">
                         <div class="table-actions-group" style="justify-content: flex-end; flex-wrap: nowrap; gap: 5px;">
+                            <!-- Convert to Appointment -->
+                            <button type="button" 
+                                    class="action-icon-btn btn-view" 
+                                    data-tooltip="Convert to Appointment" 
+                                    aria-label="Convert to Appointment"
+                                    style="color: var(--color-crimson); border-color: rgba(139, 21, 56, 0.3);"
+                                    onclick='openConvertModal(@json($inq))'>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+                            </button>
+
+                            <!-- WhatsApp Patient -->
                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $inq->phone) }}?text=Hello%20{{ urlencode($inq->name) }},%20this%20is%20Lumique%20Aesthetic%20Clinic%20Mumbai%20regarding%20your%20consultation%20inquiry." 
                                target="_blank" 
                                class="action-icon-btn btn-view" 
@@ -84,6 +95,8 @@
                                aria-label="WhatsApp Patient">
                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                             </a>
+
+                            <!-- Call Patient -->
                             <a href="tel:{{ $inq->phone }}" 
                                class="action-icon-btn" 
                                style="color: var(--color-gold-bright);"
@@ -91,6 +104,8 @@
                                aria-label="Call Patient">
                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                             </a>
+
+                            <!-- Edit Inquiry -->
                             <button type="button" 
                                     class="action-icon-btn btn-edit" 
                                     data-tooltip="Edit Inquiry" 
@@ -98,6 +113,8 @@
                                     onclick='openEditInquiryModal(@json($inq))'>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </button>
+
+                            <!-- Delete Inquiry -->
                             <button type="button" 
                                     class="action-icon-btn btn-delete" 
                                     data-tooltip="Delete Inquiry" 
@@ -110,7 +127,7 @@
                 </tr>
                 @empty
                 <tr id="empty-inquiries-row">
-                    <td colspan="7" class="text-center py-5">No inquiries found matching criteria.</td>
+                    <td colspan="7" class="text-center py-5">No contact inquiries found matching criteria.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -122,13 +139,100 @@
     </div>
 </div>
 
-<!-- Edit Inquiry Modal -->
+<!-- Modal: Convert Inquiry to Customer Appointment -->
+<div class="modal-overlay" id="convertModal">
+    <div class="modal-card" style="max-width: 650px;">
+        <button type="button" class="modal-close" onclick="closeConvertModal()">&times;</button>
+        <div class="modal-header">
+            <h3 style="display: flex; align-items: center; gap: 8px;">
+                <span>📅</span>
+                <span>Convert to Confirmed Appointment</span>
+            </h3>
+            <p class="text-muted" style="font-size: 0.85rem;">Move this inquiry into the Appointments CRM and trigger confirmation emails</p>
+        </div>
+        <form id="convertForm" onsubmit="handleConvertSubmit(event)">
+            <input type="hidden" id="convert_inquiry_id">
+            
+            <div class="form-group mb-3">
+                <label for="convert_name">Patient / Customer Name *</label>
+                <input type="text" id="convert_name" class="form-control" required placeholder="e.g. Meera Joshi">
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="convert_phone">Phone Number *</label>
+                    <input type="text" id="convert_phone" class="form-control" required placeholder="+91 98201 44552">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="convert_email">Email Address *</label>
+                    <input type="email" id="convert_email" class="form-control" required placeholder="meera.joshi@example.com">
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1.2;">
+                    <label for="convert_service">Treatment / Procedure</label>
+                    <select id="convert_service" class="form-control">
+                        <option value="">-- General Dermatology Consultation --</option>
+                        @isset($services)
+                            @foreach($services as $svc)
+                                <option value="{{ $svc->id }}" data-title="{{ $svc->title }}">{{ $svc->title }}</option>
+                            @endforeach
+                        @endisset
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 0.8;">
+                    <label for="convert_priority">Priority</label>
+                    <select id="convert_priority" class="form-control">
+                        <option value="high">High (VIP)</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="convert_date">Appointment Date *</label>
+                    <input type="date" id="convert_date" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="convert_time">Preferred Time Slot *</label>
+                    <input type="text" id="convert_time" class="form-control" required placeholder="e.g. 11:00 AM or Morning">
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="convert_estimated_value">Estimated Treatment Value (₹)</label>
+                <input type="number" id="convert_estimated_value" step="0.01" class="form-control" placeholder="e.g. 15000">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="convert_notes">Appointment Notes / Patient Concerns</label>
+                <textarea id="convert_notes" rows="3" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
+            </div>
+
+            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                <small style="display: block; color: var(--color-charcoal); font-weight: 500;">
+                    ✉️ <strong>Dual Email Notification:</strong> A booking confirmation email will be sent to the patient and an appointment alert will be sent to the clinic admin email.
+                </small>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                <button type="button" class="btn btn-outline-gold btn-sm" onclick="closeConvertModal()">Cancel</button>
+                <button type="submit" class="btn btn-gold btn-sm" id="convertBtn">Convert & Book Appointment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Edit Inquiry -->
 <div class="modal-overlay" id="inquiryModal">
     <div class="modal-card" style="max-width: 650px;">
         <button type="button" class="modal-close" onclick="closeInquiryModal()">&times;</button>
         <div class="modal-header">
-            <h3 id="inquiryModalTitle">Edit Inquiry & Booking</h3>
-            <p class="text-muted" style="font-size: 0.85rem;">Update patient details, booking date, status, or message notes</p>
+            <h3 id="inquiryModalTitle">Edit Contact Inquiry</h3>
+            <p class="text-muted" style="font-size: 0.85rem;">Update patient details, requested procedure, status, or message notes</p>
         </div>
         <form id="inquiryForm" onsubmit="saveInquiry(event)">
             <input type="hidden" id="edit_inquiry_id">
@@ -151,7 +255,7 @@
 
             <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                 <div class="form-group" style="flex: 1;">
-                    <label for="edit_inq_service">Treatment / Service</label>
+                    <label for="edit_inq_service">Procedure / Service Interest</label>
                     <select id="edit_inq_service" class="form-control">
                         <option value="">-- General Consultation --</option>
                         @isset($services)
@@ -170,25 +274,6 @@
                         <option value="converted">Converted</option>
                         <option value="closed">Closed</option>
                         <option value="spam">Spam</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <div class="form-group" style="flex: 1;">
-                    <label for="edit_inq_date">Preferred Date</label>
-                    <input type="date" id="edit_inq_date" class="form-control">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="edit_inq_time">Preferred Time Slot</label>
-                    <input type="text" id="edit_inq_time" class="form-control" placeholder="e.g. 11:00 AM or Morning">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="edit_inq_priority">Priority</label>
-                    <select id="edit_inq_priority" class="form-control">
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
                     </select>
                 </div>
             </div>
@@ -248,13 +333,102 @@
         }
     }
 
+    // --- Convert Inquiry to Appointment ---
+    function openConvertModal(inq) {
+        document.getElementById('convert_inquiry_id').value = inq.id;
+        document.getElementById('convert_name').value = inq.name || '';
+        document.getElementById('convert_email').value = inq.email || '';
+        document.getElementById('convert_phone').value = inq.phone || '';
+        
+        const serviceSelect = document.getElementById('convert_service');
+        if (inq.service_id) {
+            serviceSelect.value = inq.service_id;
+        } else {
+            serviceSelect.value = '';
+        }
+
+        // Today's date by default if preferred_date not specified
+        const today = new Date().toISOString().split('T')[0];
+        let prefDate = today;
+        if (inq.preferred_date) {
+            prefDate = inq.preferred_date.substring(0, 10);
+        }
+        document.getElementById('convert_date').value = prefDate;
+        document.getElementById('convert_time').value = inq.preferred_time || '11:00 AM';
+        document.getElementById('convert_notes').value = inq.message || '';
+        document.getElementById('convert_priority').value = inq.priority || 'medium';
+        document.getElementById('convert_estimated_value').value = '';
+
+        document.getElementById('convertModal').classList.add('active');
+    }
+
+    function closeConvertModal() {
+        document.getElementById('convertModal').classList.remove('active');
+    }
+
+    async function handleConvertSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('convert_inquiry_id').value;
+        const btn = document.getElementById('convertBtn');
+        const originalText = btn.innerHTML;
+
+        const serviceSelect = document.getElementById('convert_service');
+        const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
+        const serviceId = serviceSelect.value ? parseInt(serviceSelect.value) : null;
+        const serviceName = selectedOpt ? selectedOpt.getAttribute('data-title') : null;
+
+        const payload = {
+            name: document.getElementById('convert_name').value.trim(),
+            email: document.getElementById('convert_email').value.trim(),
+            phone: document.getElementById('convert_phone').value.trim(),
+            service_id: serviceId,
+            service_name: serviceName,
+            preferred_date: document.getElementById('convert_date').value,
+            preferred_time: document.getElementById('convert_time').value.trim(),
+            priority: document.getElementById('convert_priority').value,
+            estimated_value: document.getElementById('convert_estimated_value').value || null,
+            notes: document.getElementById('convert_notes').value.trim() || null,
+        };
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Converting & Sending Emails...';
+
+        try {
+            const res = await fetch(`/api/v1/admin/inquiries/${id}/convert-to-appointment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message || 'Converted to Appointment successfully!', 'success');
+                closeConvertModal();
+                setTimeout(() => {
+                    window.location.href = "{{ route('admin.leads') }}";
+                }, 800);
+            } else {
+                showToast(data.message || 'Failed to convert inquiry', 'error');
+            }
+        } catch (err) {
+            showToast('Error converting inquiry to appointment', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    // --- Edit Inquiry ---
     function openEditInquiryModal(inq) {
         document.getElementById('edit_inquiry_id').value = inq.id;
         document.getElementById('edit_inq_name').value = inq.name || '';
         document.getElementById('edit_inq_email').value = inq.email || '';
         document.getElementById('edit_inq_phone').value = inq.phone || '';
         
-        // Service
         const serviceSelect = document.getElementById('edit_inq_service');
         if (inq.service_id) {
             serviceSelect.value = inq.service_id;
@@ -262,17 +436,7 @@
             serviceSelect.value = '';
         }
 
-        // Status & Priority
         document.getElementById('edit_inq_status').value = inq.status || 'new';
-        document.getElementById('edit_inq_priority').value = inq.priority || 'medium';
-
-        // Dates & Time
-        let formattedDate = '';
-        if (inq.preferred_date) {
-            formattedDate = inq.preferred_date.substring(0, 10);
-        }
-        document.getElementById('edit_inq_date').value = formattedDate;
-        document.getElementById('edit_inq_time').value = inq.preferred_time || '';
         document.getElementById('edit_inq_message').value = inq.message || '';
 
         document.getElementById('inquiryModal').classList.add('active');
@@ -300,9 +464,6 @@
             service_id: serviceId,
             service_name: serviceName,
             status: document.getElementById('edit_inq_status').value,
-            priority: document.getElementById('edit_inq_priority').value,
-            preferred_date: document.getElementById('edit_inq_date').value || null,
-            preferred_time: document.getElementById('edit_inq_time').value.trim() || null,
             message: document.getElementById('edit_inq_message').value.trim() || null,
         };
 

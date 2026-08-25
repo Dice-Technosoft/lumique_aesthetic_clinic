@@ -54,11 +54,15 @@ class AdminWebController extends Controller
         $search = $request->query('search');
 
         $query = Inquiry::with('assignedUser', 'service')->latest();
-        if ($status) {
-            $query->where('status', $status);
-        }
+        
         if ($type) {
             $query->where('type', $type);
+        } else {
+            $query->where('type', 'contact');
+        }
+
+        if ($status) {
+            $query->where('status', $status);
         }
         if ($search) {
             $query->where(function ($q) use ($search) {
