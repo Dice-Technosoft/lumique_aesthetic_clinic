@@ -10,7 +10,6 @@
         .header h2 { margin: 0 0 6px 0; font-size: 20px; letter-spacing: 1.5px; font-weight: 700; }
         .badge { display: inline-block; background: #7A1C2E; color: #ffffff; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
         .content { padding: 24px 28px; }
-        .source-bar { display: flex; justify-content: space-between; background: #faf7f5; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; border: 1px solid #ede4dc; font-size: 12px; color: #665; }
         .field { margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #f2ece8; }
         .field-label { font-size: 11px; text-transform: uppercase; color: #7A1C2E; font-weight: 700; margin-bottom: 3px; letter-spacing: 0.5px; }
         .field-value { font-size: 15px; color: #2a2a2a; }
@@ -38,11 +37,6 @@
         </div>
 
         <div class="content">
-            <div class="source-bar">
-                <span><strong>Source:</strong> {{ $inquiry->source ?: 'Website Contact Form' }}</span>
-                <span><strong>Date:</strong> {{ $inquiry->created_at ? $inquiry->created_at->format('M d, Y h:i A') : date('M d, Y') }}</span>
-            </div>
-
             <div class="field">
                 <div class="field-label">Patient Name</div>
                 <div class="field-value"><strong>{{ $inquiry->name }}</strong></div>
@@ -63,12 +57,10 @@
             </div>
             @endif
 
-            @if($inquiry->subject)
             <div class="field">
-                <div class="field-label">Subject</div>
-                <div class="field-value">{{ $inquiry->subject }}</div>
+                <div class="field-label">Inquiry Date & Time</div>
+                <div class="field-value">📅 {{ $inquiry->created_at ? $inquiry->created_at->format('l, F d, Y') : date('l, F d, Y') }} &bull; ⏰ {{ $inquiry->created_at ? $inquiry->created_at->format('h:i A') : date('h:i A') }}</div>
             </div>
-            @endif
 
             @if($inquiry->message)
             <div class="field" style="border-bottom: none;">

@@ -31,19 +31,17 @@
         <table class="admin-table" style="table-layout: fixed; width: 100%;">
             <thead>
                 <tr>
-                    <th style="width: 5%;">ID</th>
-                    <th style="width: 20%;">Patient Name</th>
-                    <th style="width: 20%;">Contact Info</th>
-                    <th style="width: 16%;">Procedure Interest</th>
+                    <th style="width: 25%;">Patient Name</th>
+                    <th style="width: 23%;">Contact Info</th>
+                    <th style="width: 18%;">Procedure Interest</th>
                     <th style="width: 12%;">Inquiry Date</th>
-                    <th style="width: 12%;">Status</th>
-                    <th style="width: 15%; text-align: right; min-width: 140px;">Actions</th>
+                    <th style="width: 10%;">Status</th>
+                    <th style="width: 12%; text-align: right; min-width: 130px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($inquiries as $inq)
                 <tr id="inquiry_row_{{ $inq->id }}" class="inquiry-data-row" data-search="{{ strtolower($inq->name . ' ' . $inq->email . ' ' . $inq->phone . ' ' . ($inq->service->title ?? '') . ' ' . ($inq->service_name ?? '')) }}">
-                    <td>#{{ $inq->id }}</td>
                     <td>
                         <strong class="inq-patient-name">{{ $inq->name }}</strong>
                         @if($inq->message)
@@ -179,11 +177,14 @@
             <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1.2;">
                     <label for="convert_service">Treatment / Procedure</label>
-                    <select id="convert_service" class="form-control">
-                        <option value="">-- General Dermatology Consultation --</option>
+                    <select id="convert_service" class="form-control" onchange="handleConvertServiceChange(this)">
+                        <option value="" data-price="">-- General Dermatology Consultation --</option>
                         @isset($services)
                             @foreach($services as $svc)
-                                <option value="{{ $svc->id }}" data-title="{{ $svc->title }}">{{ $svc->title }}</option>
+                                @php
+                                    $cleanPrice = preg_replace('/[^0-9.]/', '', $svc->price_starting_at ?? '');
+                                @endphp
+                                <option value="{{ $svc->id }}" data-title="{{ $svc->title }}" data-price="{{ $cleanPrice }}">{{ $svc->title }} @if($svc->price_starting_at)({{ $svc->price_starting_at }})@endif</option>
                             @endforeach
                         @endisset
                     </select>
@@ -384,10 +385,20 @@
         
         document.getElementById('convert_notes').value = message;
         document.getElementById('convert_estimated_value').value = '';
+        handleConvertServiceChange(document.getElementById('convert_service'));
 
         const modal = document.getElementById('convertModal');
         modal.classList.add('open');
         modal.classList.add('active');
+    }
+
+    function handleConvertServiceChange(selectEl) {
+        if (!selectEl) return;
+        const opt = selectEl.options[selectEl.selectedIndex];
+        const price = opt ? opt.getAttribute('data-price') : '';
+        if (price) {
+            document.getElementById('convert_estimated_value').value = price;
+        }
     }
 
     function closeConvertModal() {

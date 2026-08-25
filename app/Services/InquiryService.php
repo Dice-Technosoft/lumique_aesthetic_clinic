@@ -46,32 +46,35 @@ class InquiryService
                 'user_agent' => $userAgent,
             ]);
 
-            // Automatically create Lead in CRM
-            $defaultSource = LeadSource::where('slug', 'website-contact-form')->first();
-            $lead = Lead::create([
-                'inquiry_id' => $inquiry->id,
-                'lead_source_id' => $defaultSource?->id,
-                'name' => $inquiry->name,
-                'email' => $inquiry->email,
-                'phone' => $inquiry->phone,
-                'service_id' => $inquiry->service_id,
-                'service_name' => $inquiry->service_name,
-                'status' => 'new',
-                'priority' => $inquiry->priority,
-                'preferred_date' => $inquiry->preferred_date,
-                'preferred_time' => $inquiry->preferred_time,
-                'notes' => $inquiry->message,
-            ]);
+            // Only automatically create Lead in CRM for direct Appointment bookings
+            if ($inquiry->type === 'appointment') {
+                $defaultSource = LeadSource::where('slug', 'website-appointment-modal')->first() 
+                    ?? LeadSource::where('slug', 'website-contact-form')->first();
+                $lead = Lead::create([
+                    'inquiry_id' => $inquiry->id,
+                    'lead_source_id' => $defaultSource?->id,
+                    'name' => $inquiry->name,
+                    'email' => $inquiry->email,
+                    'phone' => $inquiry->phone,
+                    'service_id' => $inquiry->service_id,
+                    'service_name' => $inquiry->service_name,
+                    'status' => 'new',
+                    'priority' => $inquiry->priority,
+                    'preferred_date' => $inquiry->preferred_date,
+                    'preferred_time' => $inquiry->preferred_time,
+                    'notes' => $inquiry->message,
+                ]);
 
-            LeadActivity::create([
-                'lead_id' => $lead->id,
-                'activity_type' => 'inquiry_received',
-                'description' => 'New ' . ($inquiry->type === 'appointment' ? 'appointment request' : 'inquiry') . ' received from website.',
-                'properties' => [
-                    'source' => $inquiry->source,
-                    'service' => $inquiry->service_name,
-                ],
-            ]);
+                LeadActivity::create([
+                    'lead_id' => $lead->id,
+                    'activity_type' => 'inquiry_received',
+                    'description' => 'New appointment booking request received from website.',
+                    'properties' => [
+                        'source' => $inquiry->source,
+                        'service' => $inquiry->service_name,
+                    ],
+                ]);
+            }
 
             // Dispatch Dual-Email Jobs
             if ($inquiry->type === 'appointment') {

@@ -204,11 +204,14 @@
             <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1.2;">
                     <label for="lead_service_id">Treatment / Procedure</label>
-                    <select id="lead_service_id" name="service_id" class="form-control">
-                        <option value="">-- General Dermatology Consultation --</option>
+                    <select id="lead_service_id" name="service_id" class="form-control" onchange="handleLeadServiceChange(this)">
+                        <option value="" data-price="">-- General Dermatology Consultation --</option>
                         @isset($services)
                             @foreach($services as $svc)
-                                <option value="{{ $svc->id }}" data-title="{{ $svc->title }}">{{ $svc->title }}</option>
+                                @php
+                                    $cleanPrice = preg_replace('/[^0-9.]/', '', $svc->price_starting_at ?? '');
+                                @endphp
+                                <option value="{{ $svc->id }}" data-title="{{ $svc->title }}" data-price="{{ $cleanPrice }}">{{ $svc->title }} @if($svc->price_starting_at)({{ $svc->price_starting_at }})@endif</option>
                             @endforeach
                         @endisset
                     </select>
@@ -496,6 +499,7 @@
             for (let i = 0; i < select.options.length; i++) {
                 if (select.options[i].text.toLowerCase().includes(serviceName.toLowerCase())) {
                     select.selectedIndex = i;
+                    handleLeadServiceChange(select);
                     break;
                 }
             }
@@ -504,6 +508,15 @@
         const dropdown = document.getElementById('patientSuggestionsDropdown');
         dropdown.style.display = 'none';
         dropdown.innerHTML = '';
+    }
+
+    function handleLeadServiceChange(selectEl) {
+        if (!selectEl) return;
+        const opt = selectEl.options[selectEl.selectedIndex];
+        const price = opt ? opt.getAttribute('data-price') : '';
+        if (price) {
+            document.getElementById('lead_estimated_value').value = price;
+        }
     }
 
     // Hide dropdown if clicked outside
@@ -525,6 +538,8 @@
         document.getElementById('lead_status').value = 'consultation_scheduled';
         document.getElementById('lead_preferred_date').value = new Date().toISOString().split('T')[0];
         document.getElementById('lead_preferred_time').value = '11:00';
+        document.getElementById('lead_estimated_value').value = '';
+        handleLeadServiceChange(document.getElementById('lead_service_id'));
 
         const modal = document.getElementById('leadModal');
         modal.classList.add('open');
