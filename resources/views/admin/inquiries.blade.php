@@ -60,11 +60,10 @@
                         </span>
                         @php
                             $inqService = $inq->service ?? ($inq->service_name ? \App\Models\Service::where('title', $inq->service_name)->first() : null);
-                            $inqPrice = $inqService?->price_starting_at ? (float) preg_replace('/[^0-9.]/', '', $inqService->price_starting_at) : null;
                         @endphp
-                        @if($inqPrice)
-                        <div class="small font-weight-bold" style="color: var(--color-crimson); font-size: 0.82rem; margin-top: 4px; font-weight: 700;">
-                            ₹{{ number_format((float)$inqPrice, 0) }}
+                        @if($inqService && $inqService->price_starting_at)
+                        <div class="small text-muted" style="font-size: 0.8rem; margin-top: 3px; font-weight: 500;">
+                            {{ $inqService->price_starting_at }}
                         </div>
                         @endif
                     </td>
