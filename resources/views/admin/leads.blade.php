@@ -41,7 +41,7 @@
                     <th style="width: 15%;">Appointment Slot</th>
                     <th style="width: 12%;">Status</th>
                     <th style="width: 7%;">Notes</th>
-                    <th style="width: 12%; text-align: right;">Actions</th>
+                    <th style="width: 12%; text-align: right; min-width: 125px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,7 +121,6 @@
                                     data-date="{{ $lead->preferred_date ? $lead->preferred_date->format('Y-m-d') : '' }}"
                                     data-time="{{ $lead->preferred_time }}"
                                     data-status="{{ $lead->status }}"
-                                    data-priority="{{ $lead->priority }}"
                                     data-value="{{ $lead->estimated_value }}"
                                     data-notes="{{ $lead->notes }}"
                                     onclick="openLeadModalFromButton(this)">
@@ -151,20 +150,20 @@
 
 <!-- Modal: Add / Edit Appointment -->
 <div class="modal-overlay" id="leadModal">
-    <div class="modal-card" style="max-width: 650px;">
+    <div class="modal-card" style="max-width: 620px; max-height: 88vh; overflow-y: auto; padding: 1.75rem;">
         <button class="modal-close" onclick="closeLeadModal()">&times;</button>
-        <div class="modal-header">
-            <h3 id="leadModalTitle" style="display: flex; align-items: center; gap: 8px;">
+        <div class="modal-header" style="margin-bottom: 1.25rem;">
+            <h3 id="leadModalTitle" style="display: flex; align-items: center; gap: 8px; margin: 0 0 4px 0;">
                 <span>📅</span>
                 <span>Schedule / Edit Appointment</span>
             </h3>
-            <p class="text-muted" style="font-size: 0.82rem;">Create or update clinical appointment details & notify patient</p>
+            <p class="text-muted" style="font-size: 0.82rem; margin: 0;">Create or update clinical appointment details & notify patient</p>
         </div>
         <form onsubmit="handleLeadSubmit(event)" id="leadForm" autocomplete="off">
             <input type="hidden" id="lead_id" name="id">
 
             <!-- Patient Name with Realtime Autocomplete Suggestion -->
-            <div class="form-group" style="position: relative; margin-bottom: 1rem;">
+            <div class="form-group" style="position: relative; margin-bottom: 0.75rem;">
                 <label for="lead_name">Patient / Customer Name *</label>
                 <input type="text" 
                        id="lead_name" 
@@ -179,12 +178,12 @@
                 <div id="patientSuggestionsDropdown" style="display: none; position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #ffffff; border: 1px solid var(--color-border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 1050; max-height: 220px; overflow-y: auto;">
                     <!-- Dynamically populated suggestions -->
                 </div>
-                <small class="text-muted" style="font-size: 0.75rem; margin-top: 3px; display: block;">
+                <small class="text-muted" style="font-size: 0.75rem; margin-top: 2px; display: block;">
                     💡 Type to auto-search previous patients or create a brand new patient.
                 </small>
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1;">
                     <label for="lead_phone">Phone Number *</label>
                     <input type="text" id="lead_phone" name="phone" required class="form-control" placeholder="+91 98200 12345">
@@ -195,7 +194,7 @@
                 </div>
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1.2;">
                     <label for="lead_service_id">Treatment / Procedure</label>
                     <select id="lead_service_id" name="service_id" class="form-control">
@@ -220,42 +219,53 @@
                 </div>
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <div class="form-group" style="flex: 1;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem; align-items: flex-end;">
+                <div class="form-group" style="flex: 1.1;">
                     <label for="lead_preferred_date">Appointment Date</label>
                     <input type="date" id="lead_preferred_date" name="preferred_date" class="form-control">
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="lead_preferred_time">Time Slot</label>
-                    <input type="text" id="lead_preferred_time" name="preferred_time" class="form-control" placeholder="e.g. 11:00 AM">
-                </div>
-                <div class="form-group" style="flex: 0.8;">
-                    <label for="lead_priority">Priority</label>
-                    <select id="lead_priority" name="priority" class="form-control">
-                        <option value="high">High (VIP)</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="low">Low</option>
-                    </select>
+                <div class="form-group" style="flex: 1.4;">
+                    <label>Appointment Time Slot</label>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <!-- Hour 1-12 -->
+                        <select id="lead_time_hour" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
+                            @for($h = 1; $h <= 12; $h++)
+                                <option value="{{ sprintf('%02d', $h) }}" {{ $h == 11 ? 'selected' : '' }}>{{ sprintf('%02d', $h) }}</option>
+                            @endfor
+                        </select>
+                        <span style="font-weight: bold; color: var(--color-charcoal-muted);">:</span>
+                        <!-- Minute 00-55 -->
+                        <select id="lead_time_min" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
+                            @for($m = 0; $m < 60; $m += 5)
+                                <option value="{{ sprintf('%02d', $m) }}" {{ $m == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $m) }}</option>
+                            @endfor
+                        </select>
+                        <!-- AM / PM -->
+                        <select id="lead_time_ampm" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 600; min-width: 65px;">
+                            <option value="AM" selected>AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group mb-3">
+            <div class="form-group mb-2">
                 <label for="lead_estimated_value">Estimated Treatment Value (₹)</label>
                 <input type="number" id="lead_estimated_value" name="estimated_value" step="0.01" class="form-control" placeholder="e.g. 15000">
             </div>
 
-            <div class="form-group mb-3">
+            <div class="form-group mb-2">
                 <label for="lead_notes">Consultation Notes / Patient Intake</label>
-                <textarea id="lead_notes" name="notes" rows="3" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
+                <textarea id="lead_notes" name="notes" rows="2" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
             </div>
 
-            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                <small style="display: block; color: var(--color-charcoal); font-weight: 500;">
+            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.6rem 0.85rem; border-radius: 4px; margin-bottom: 1rem;">
+                <small style="display: block; color: var(--color-charcoal); font-size: 0.78rem;">
                     ✉️ <strong>Dual Email Sending:</strong> On booking/saving, confirmation emails are automatically dispatched to the patient and clinic admin.
                 </small>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-border);">
                 <button type="button" class="btn btn-outline-gold btn-sm" onclick="closeLeadModal()">Cancel</button>
                 <button type="submit" id="saveLeadBtn" class="btn btn-gold btn-sm">Save Appointment</button>
             </div>
@@ -265,9 +275,9 @@
 
 <!-- Modal: View Appointment Details -->
 <div class="modal-overlay" id="viewLeadModal">
-    <div class="modal-card" style="max-width: 650px;">
+    <div class="modal-card" style="max-width: 620px; max-height: 88vh; overflow-y: auto; padding: 1.75rem;">
         <button class="modal-close" onclick="closeViewLeadModal()">&times;</button>
-        <div class="modal-header" style="border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+        <div class="modal-header" style="border-bottom: 1px solid var(--color-border); padding-bottom: 0.85rem; margin-bottom: 1rem;">
             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                 <div>
                     <h3 id="viewLeadName" style="margin: 0;">Patient Appointment Details</h3>
@@ -277,26 +287,26 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-            <div style="background: var(--color-bg-light); padding: 0.85rem 1rem; border-radius: 8px;">
-                <small class="text-muted" style="text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">Phone</small>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div style="background: var(--color-bg-light); padding: 0.75rem 0.9rem; border-radius: 8px;">
+                <small class="text-muted" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">Phone</small>
                 <div id="viewLeadPhone" style="font-weight: 600; margin-top: 2px;">-</div>
             </div>
-            <div style="background: var(--color-bg-light); padding: 0.85rem 1rem; border-radius: 8px;">
-                <small class="text-muted" style="text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">Email</small>
+            <div style="background: var(--color-bg-light); padding: 0.75rem 0.9rem; border-radius: 8px;">
+                <small class="text-muted" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">Email</small>
                 <div id="viewLeadEmail" style="font-weight: 600; margin-top: 2px;">-</div>
             </div>
-            <div style="background: var(--color-bg-light); padding: 0.85rem 1rem; border-radius: 8px;">
-                <small class="text-muted" style="text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">Treatment / Procedure</small>
+            <div style="background: var(--color-bg-light); padding: 0.75rem 0.9rem; border-radius: 8px;">
+                <small class="text-muted" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">Treatment / Procedure</small>
                 <div id="viewLeadService" style="font-weight: 600; margin-top: 2px; color: var(--color-crimson);">-</div>
             </div>
-            <div style="background: var(--color-bg-light); padding: 0.85rem 1rem; border-radius: 8px;">
-                <small class="text-muted" style="text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">Appointment Slot</small>
+            <div style="background: var(--color-bg-light); padding: 0.75rem 0.9rem; border-radius: 8px;">
+                <small class="text-muted" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">Appointment Slot</small>
                 <div id="viewLeadDate" style="font-weight: 600; margin-top: 2px; color: var(--color-gold-bright);">-</div>
             </div>
         </div>
 
-        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem;">
             <button type="button" class="btn btn-outline-gold btn-sm" style="flex: 1;" onclick="triggerAddNoteFromView()">+ Add Note</button>
             <button type="button" class="btn btn-gold btn-sm" style="flex: 1;" onclick="triggerFollowUpFromView()">Schedule Follow-up</button>
         </div>
@@ -309,15 +319,15 @@
 
 <!-- Modal: Add Note -->
 <div class="modal-overlay" id="leadNoteModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 550px; padding: 1.75rem;">
         <button class="modal-close" onclick="closeLeadNoteModal()">&times;</button>
-        <div class="modal-header">
-            <h3>Add Consultation Note</h3>
-            <p id="noteModalLeadName" class="text-muted"></p>
+        <div class="modal-header" style="margin-bottom: 1rem;">
+            <h3 style="margin: 0 0 4px 0;">Add Consultation Note</h3>
+            <p id="noteModalLeadName" class="text-muted" style="font-size: 0.82rem; margin: 0;"></p>
         </div>
         <form onsubmit="handleNoteSubmit(event)">
             <input type="hidden" id="note_lead_id">
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="note_text">Note Details *</label>
                 <textarea id="note_text" rows="3" required class="form-control" placeholder="Patient concerns, skin history, recommended treatments..."></textarea>
             </div>
@@ -331,25 +341,25 @@
 
 <!-- Modal: Schedule Follow-up -->
 <div class="modal-overlay" id="followUpModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 550px; padding: 1.75rem;">
         <button class="modal-close" onclick="closeFollowUpModal()">&times;</button>
-        <div class="modal-header">
-            <h3>Schedule Patient Follow-up</h3>
-            <p id="fuModalLeadName" class="text-muted"></p>
+        <div class="modal-header" style="margin-bottom: 1rem;">
+            <h3 style="margin: 0 0 4px 0;">Schedule Patient Follow-up</h3>
+            <p id="fuModalLeadName" class="text-muted" style="font-size: 0.82rem; margin: 0;"></p>
         </div>
         <form onsubmit="handleFollowUpSubmit(event)">
             <input type="hidden" id="fu_lead_id">
-            <div class="form-row">
-                <div class="form-group">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div class="form-group" style="flex: 1;">
                     <label for="fu_date">Follow-up Date *</label>
                     <input type="date" id="fu_date" required class="form-control">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="flex: 1;">
                     <label for="fu_time">Time (Optional)</label>
                     <input type="time" id="fu_time" class="form-control">
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="fu_note">Follow-up Objective</label>
                 <textarea id="fu_note" rows="2" class="form-control" placeholder="e.g. Discuss treatment plan & post-care guidance"></textarea>
             </div>
@@ -401,6 +411,43 @@
             }
         } catch(e) {
             showToast('Error updating status', 'error');
+        }
+    }
+
+    // Helper: Parse Time String (e.g., "11:30 AM" or "05:00 PM")
+    function parseTimeToSelectors(timeStr, hourElId, minElId, ampmElId) {
+        if (!timeStr) {
+            document.getElementById(hourElId).value = '11';
+            document.getElementById(minElId).value = '00';
+            document.getElementById(ampmElId).value = 'AM';
+            return;
+        }
+
+        const match = timeStr.match(/(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i);
+        if (match) {
+            let h = parseInt(match[1]);
+            let m = match[2];
+            let ampm = match[3] ? match[3].toUpperCase() : 'AM';
+            
+            if (h > 12) {
+                h -= 12;
+                ampm = 'PM';
+            }
+            if (h === 0) h = 12;
+
+            document.getElementById(hourElId).value = (h < 10 ? '0' + h : '' + h);
+            
+            let minInt = parseInt(m);
+            minInt = Math.round(minInt / 5) * 5;
+            if (minInt >= 60) minInt = 55;
+            let minFormatted = minInt < 10 ? '0' + minInt : '' + minInt;
+            
+            document.getElementById(minElId).value = minFormatted;
+            document.getElementById(ampmElId).value = ampm;
+        } else {
+            document.getElementById(hourElId).value = '11';
+            document.getElementById(minElId).value = '00';
+            document.getElementById(ampmElId).value = 'AM';
         }
     }
 
@@ -466,7 +513,6 @@
         document.getElementById('lead_email').value = email;
         document.getElementById('lead_phone').value = phone;
 
-        // Auto-match service dropdown if exists
         if (serviceName) {
             const select = document.getElementById('lead_service_id');
             for (let i = 0; i < select.options.length; i++) {
@@ -500,7 +546,9 @@
         document.getElementById('leadModalTitle').innerHTML = '<span>📅</span><span>Schedule New Appointment</span>';
         document.getElementById('lead_status').value = 'consultation_scheduled';
         document.getElementById('lead_preferred_date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('lead_preferred_time').value = '11:00 AM';
+        document.getElementById('lead_time_hour').value = '11';
+        document.getElementById('lead_time_min').value = '00';
+        document.getElementById('lead_time_ampm').value = 'AM';
 
         const modal = document.getElementById('leadModal');
         modal.classList.add('open');
@@ -520,7 +568,6 @@
         const date = btn.getAttribute('data-date') || '';
         const time = btn.getAttribute('data-time') || '';
         const status = btn.getAttribute('data-status') || 'consultation_scheduled';
-        const priority = btn.getAttribute('data-priority') || 'medium';
         const value = btn.getAttribute('data-value') || '';
         const notes = btn.getAttribute('data-notes') || '';
 
@@ -537,9 +584,9 @@
         }
 
         document.getElementById('lead_preferred_date').value = date;
-        document.getElementById('lead_preferred_time').value = time;
+        parseTimeToSelectors(time, 'lead_time_hour', 'lead_time_min', 'lead_time_ampm');
+
         document.getElementById('lead_status').value = status;
-        document.getElementById('lead_priority').value = priority;
         document.getElementById('lead_estimated_value').value = value;
         document.getElementById('lead_notes').value = notes;
 
@@ -567,6 +614,11 @@
         const serviceId = serviceSelect.value ? parseInt(serviceSelect.value) : null;
         const serviceName = selectedOpt ? selectedOpt.getAttribute('data-title') : null;
 
+        const h = document.getElementById('lead_time_hour').value;
+        const m = document.getElementById('lead_time_min').value;
+        const ap = document.getElementById('lead_time_ampm').value;
+        const formattedTime = `${h}:${m} ${ap}`;
+
         const payload = {
             name: document.getElementById('lead_name').value.trim(),
             email: document.getElementById('lead_email').value.trim(),
@@ -574,9 +626,9 @@
             service_id: serviceId,
             service_name: serviceName,
             preferred_date: document.getElementById('lead_preferred_date').value || null,
-            preferred_time: document.getElementById('lead_preferred_time').value.trim() || null,
+            preferred_time: formattedTime,
             status: document.getElementById('lead_status').value,
-            priority: document.getElementById('lead_priority').value,
+            priority: 'medium',
             estimated_value: document.getElementById('lead_estimated_value').value || null,
             notes: document.getElementById('lead_notes').value.trim() || null,
         };

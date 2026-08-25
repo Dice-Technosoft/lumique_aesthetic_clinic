@@ -32,12 +32,12 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">ID</th>
-                    <th style="width: 22%;">Patient Name</th>
+                    <th style="width: 20%;">Patient Name</th>
                     <th style="width: 20%;">Contact Info</th>
-                    <th style="width: 17%;">Procedure Interest</th>
-                    <th style="width: 13%;">Inquiry Date</th>
-                    <th style="width: 13%;">Status</th>
-                    <th style="width: 10%; text-align: right;">Actions</th>
+                    <th style="width: 16%;">Procedure Interest</th>
+                    <th style="width: 12%;">Inquiry Date</th>
+                    <th style="width: 12%;">Status</th>
+                    <th style="width: 15%; text-align: right; min-width: 140px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,7 +47,7 @@
                     <td>
                         <strong class="inq-patient-name">{{ $inq->name }}</strong>
                         @if($inq->message)
-                        <div class="small text-muted inq-patient-msg" style="max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $inq->message }}">
+                        <div class="small text-muted inq-patient-msg" style="max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $inq->message }}">
                             "{{ $inq->message }}"
                         </div>
                         @endif
@@ -76,7 +76,7 @@
                         </select>
                     </td>
                     <td style="text-align: right;">
-                        <div class="table-actions-group" style="justify-content: flex-end; flex-wrap: nowrap; gap: 5px;">
+                        <div class="table-actions-group" style="justify-content: flex-end; flex-wrap: nowrap; gap: 6px;">
                             <!-- Convert to Appointment -->
                             <button type="button" 
                                     class="action-icon-btn btn-view" 
@@ -148,24 +148,24 @@
 
 <!-- Modal: Convert Inquiry to Customer Appointment -->
 <div class="modal-overlay" id="convertModal">
-    <div class="modal-card" style="max-width: 650px;">
+    <div class="modal-card" style="max-width: 620px; max-height: 88vh; overflow-y: auto; padding: 1.75rem;">
         <button type="button" class="modal-close" onclick="closeConvertModal()">&times;</button>
-        <div class="modal-header">
-            <h3 style="display: flex; align-items: center; gap: 8px;">
+        <div class="modal-header" style="margin-bottom: 1.25rem;">
+            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0 0 4px 0;">
                 <span>📅</span>
                 <span>Convert to Confirmed Appointment</span>
             </h3>
-            <p class="text-muted" style="font-size: 0.85rem;">Move this inquiry into the Appointments CRM and trigger confirmation emails</p>
+            <p class="text-muted" style="font-size: 0.82rem; margin: 0;">Move this inquiry into the Appointments CRM and trigger confirmation emails</p>
         </div>
         <form id="convertForm" onsubmit="handleConvertSubmit(event)">
             <input type="hidden" id="convert_inquiry_id">
             
-            <div class="form-group mb-3">
+            <div class="form-group mb-2">
                 <label for="convert_name">Patient / Customer Name *</label>
                 <input type="text" id="convert_name" class="form-control" required placeholder="e.g. Meera Joshi">
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1;">
                     <label for="convert_phone">Phone Number *</label>
                     <input type="text" id="convert_phone" class="form-control" required placeholder="+91 98201 44552">
@@ -176,7 +176,7 @@
                 </div>
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1.2;">
                     <label for="convert_service">Treatment / Procedure</label>
                     <select id="convert_service" class="form-control">
@@ -189,43 +189,53 @@
                     </select>
                 </div>
                 <div class="form-group" style="flex: 0.8;">
-                    <label for="convert_priority">Priority</label>
-                    <select id="convert_priority" class="form-control">
-                        <option value="high">High (VIP)</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="low">Low</option>
-                    </select>
+                    <label for="convert_estimated_value">Est. Value (₹)</label>
+                    <input type="number" id="convert_estimated_value" step="0.01" class="form-control" placeholder="e.g. 15000">
                 </div>
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <div class="form-group" style="flex: 1;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem; align-items: flex-end;">
+                <div class="form-group" style="flex: 1.1;">
                     <label for="convert_date">Appointment Date *</label>
                     <input type="date" id="convert_date" class="form-control" required>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="convert_time">Preferred Time Slot *</label>
-                    <input type="text" id="convert_time" class="form-control" required placeholder="e.g. 11:00 AM or Morning">
+                <div class="form-group" style="flex: 1.4;">
+                    <label>Appointment Time Slot *</label>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <!-- Hour 1-12 -->
+                        <select id="convert_time_hour" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
+                            @for($h = 1; $h <= 12; $h++)
+                                <option value="{{ sprintf('%02d', $h) }}" {{ $h == 11 ? 'selected' : '' }}>{{ sprintf('%02d', $h) }}</option>
+                            @endfor
+                        </select>
+                        <span style="font-weight: bold; color: var(--color-charcoal-muted);">:</span>
+                        <!-- Minute 00-59 -->
+                        <select id="convert_time_min" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
+                            @for($m = 0; $m < 60; $m += 5)
+                                <option value="{{ sprintf('%02d', $m) }}" {{ $m == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $m) }}</option>
+                            @endfor
+                        </select>
+                        <!-- AM / PM -->
+                        <select id="convert_time_ampm" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 600; min-width: 65px;">
+                            <option value="AM" selected>AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="convert_estimated_value">Estimated Treatment Value (₹)</label>
-                <input type="number" id="convert_estimated_value" step="0.01" class="form-control" placeholder="e.g. 15000">
-            </div>
-
-            <div class="form-group mb-3">
+            <div class="form-group mb-2">
                 <label for="convert_notes">Appointment Notes / Patient Concerns</label>
-                <textarea id="convert_notes" rows="3" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
+                <textarea id="convert_notes" rows="2" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
             </div>
 
-            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                <small style="display: block; color: var(--color-charcoal); font-weight: 500;">
-                    ✉️ <strong>Dual Email Notification:</strong> A booking confirmation email will be sent to the patient and an appointment alert will be sent to the clinic admin email.
+            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.6rem 0.85rem; border-radius: 4px; margin-bottom: 1rem;">
+                <small style="display: block; color: var(--color-charcoal); font-size: 0.78rem;">
+                    ✉️ <strong>Dual Email Notification:</strong> Booking confirmation email will be sent to the patient & clinic admin.
                 </small>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-border);">
                 <button type="button" class="btn btn-outline-gold btn-sm" onclick="closeConvertModal()">Cancel</button>
                 <button type="submit" class="btn btn-gold btn-sm" id="convertBtn">Convert & Book Appointment</button>
             </div>
@@ -235,21 +245,21 @@
 
 <!-- Modal: Edit Inquiry -->
 <div class="modal-overlay" id="inquiryModal">
-    <div class="modal-card" style="max-width: 650px;">
+    <div class="modal-card" style="max-width: 620px; max-height: 88vh; overflow-y: auto; padding: 1.75rem;">
         <button type="button" class="modal-close" onclick="closeInquiryModal()">&times;</button>
-        <div class="modal-header">
-            <h3 id="inquiryModalTitle">Edit Contact Inquiry</h3>
-            <p class="text-muted" style="font-size: 0.85rem;">Update patient details, requested procedure, status, or message notes</p>
+        <div class="modal-header" style="margin-bottom: 1.25rem;">
+            <h3 id="inquiryModalTitle" style="margin: 0 0 4px 0;">Edit Contact Inquiry</h3>
+            <p class="text-muted" style="font-size: 0.82rem; margin: 0;">Update patient details, requested procedure, status, or message notes</p>
         </div>
         <form id="inquiryForm" onsubmit="saveInquiry(event)">
             <input type="hidden" id="edit_inquiry_id">
             
-            <div class="form-group mb-3">
+            <div class="form-group mb-2">
                 <label for="edit_inq_name">Patient Full Name *</label>
                 <input type="text" id="edit_inq_name" class="form-control" required placeholder="e.g. Meera Joshi">
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                 <div class="form-group" style="flex: 1;">
                     <label for="edit_inq_phone">Phone Number *</label>
                     <input type="text" id="edit_inq_phone" class="form-control" required placeholder="+91 98201 44552">
@@ -260,8 +270,8 @@
                 </div>
             </div>
 
-            <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <div class="form-group" style="flex: 1;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div class="form-group" style="flex: 1.2;">
                     <label for="edit_inq_service">Procedure / Service Interest</label>
                     <select id="edit_inq_service" class="form-control">
                         <option value="">-- General Consultation --</option>
@@ -272,7 +282,7 @@
                         @endisset
                     </select>
                 </div>
-                <div class="form-group" style="flex: 1;">
+                <div class="form-group" style="flex: 0.8;">
                     <label for="edit_inq_status">Status *</label>
                     <select id="edit_inq_status" class="form-control">
                         <option value="new">New</option>
@@ -290,7 +300,7 @@
                 <textarea id="edit_inq_message" rows="3" class="form-control" placeholder="Patient concerns, aesthetic goals, or intake notes..."></textarea>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-border);">
                 <button type="button" class="btn btn-outline-gold btn-sm" onclick="closeInquiryModal()">Cancel</button>
                 <button type="submit" class="btn btn-gold btn-sm" id="saveInquiryBtn">Save Changes</button>
             </div>
@@ -340,6 +350,44 @@
         }
     }
 
+    // Helper: Parse Time String (e.g., "11:30 AM" or "05:00 PM")
+    function parseTimeToSelectors(timeStr, hourElId, minElId, ampmElId) {
+        if (!timeStr) {
+            document.getElementById(hourElId).value = '11';
+            document.getElementById(minElId).value = '00';
+            document.getElementById(ampmElId).value = 'AM';
+            return;
+        }
+
+        const match = timeStr.match(/(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i);
+        if (match) {
+            let h = parseInt(match[1]);
+            let m = match[2];
+            let ampm = match[3] ? match[3].toUpperCase() : 'AM';
+            
+            if (h > 12) {
+                h -= 12;
+                ampm = 'PM';
+            }
+            if (h === 0) h = 12;
+
+            document.getElementById(hourElId).value = (h < 10 ? '0' + h : '' + h);
+            
+            // Round to nearest 5 for select option match if needed
+            let minInt = parseInt(m);
+            minInt = Math.round(minInt / 5) * 5;
+            if (minInt >= 60) minInt = 55;
+            let minFormatted = minInt < 10 ? '0' + minInt : '' + minInt;
+            
+            document.getElementById(minElId).value = minFormatted;
+            document.getElementById(ampmElId).value = ampm;
+        } else {
+            document.getElementById(hourElId).value = '11';
+            document.getElementById(minElId).value = '00';
+            document.getElementById(ampmElId).value = 'AM';
+        }
+    }
+
     // --- Convert Inquiry to Appointment ---
     function openConvertModalFromButton(btn) {
         const id = btn.getAttribute('data-id');
@@ -365,9 +413,9 @@
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('convert_date').value = date ? date.substring(0, 10) : today;
-        document.getElementById('convert_time').value = time || '11:00 AM';
+        parseTimeToSelectors(time, 'convert_time_hour', 'convert_time_min', 'convert_time_ampm');
+        
         document.getElementById('convert_notes').value = message;
-        document.getElementById('convert_priority').value = 'medium';
         document.getElementById('convert_estimated_value').value = '';
 
         const modal = document.getElementById('convertModal');
@@ -392,6 +440,12 @@
         const serviceId = serviceSelect.value ? parseInt(serviceSelect.value) : null;
         const serviceName = selectedOpt ? selectedOpt.getAttribute('data-title') : null;
 
+        // Combine Hour, Min, AM/PM
+        const h = document.getElementById('convert_time_hour').value;
+        const m = document.getElementById('convert_time_min').value;
+        const ap = document.getElementById('convert_time_ampm').value;
+        const formattedTime = `${h}:${m} ${ap}`;
+
         const payload = {
             name: document.getElementById('convert_name').value.trim(),
             email: document.getElementById('convert_email').value.trim(),
@@ -399,8 +453,8 @@
             service_id: serviceId,
             service_name: serviceName,
             preferred_date: document.getElementById('convert_date').value,
-            preferred_time: document.getElementById('convert_time').value.trim(),
-            priority: document.getElementById('convert_priority').value,
+            preferred_time: formattedTime,
+            priority: 'medium',
             estimated_value: document.getElementById('convert_estimated_value').value || null,
             notes: document.getElementById('convert_notes').value.trim() || null,
         };
@@ -425,7 +479,7 @@
                 closeConvertModal();
                 setTimeout(() => {
                     window.location.href = "{{ route('admin.leads') }}";
-                }, 800);
+                }, 700);
             } else {
                 showToast(data.message || 'Failed to convert inquiry', 'error');
             }
