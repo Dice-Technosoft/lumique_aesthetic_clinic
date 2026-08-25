@@ -31,12 +31,12 @@
         <table class="admin-table" style="table-layout: fixed; width: 100%;">
             <thead>
                 <tr>
-                    <th style="width: 25%;">Patient Name</th>
-                    <th style="width: 23%;">Contact Info</th>
-                    <th style="width: 18%;">Procedure Interest</th>
-                    <th style="width: 12%;">Inquiry Date</th>
-                    <th style="width: 10%;">Status</th>
-                    <th style="width: 12%; text-align: right; min-width: 130px;">Actions</th>
+                    <th style="width: 20%;">Patient Name</th>
+                    <th style="width: 20%;">Contact Info</th>
+                    <th style="width: 17%;">Procedure Interest</th>
+                    <th style="width: 13%;">Inquiry Date</th>
+                    <th style="width: 11%;">Status</th>
+                    <th style="width: 19%; text-align: right; min-width: 175px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,7 +132,7 @@
                 </tr>
                 @empty
                 <tr id="empty-inquiries-row">
-                    <td colspan="7" class="text-center py-5">No contact inquiries found matching criteria.</td>
+                    <td colspan="6" class="text-center py-5">No contact inquiries found matching criteria.</td>
                 </tr>
                 @endforelse
             </tbody>
