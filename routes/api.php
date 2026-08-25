@@ -63,6 +63,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/patients/search', [LeadApiController::class, 'searchPatients']);
         Route::get('/leads', [LeadApiController::class, 'index']);
         Route::post('/leads', [LeadApiController::class, 'store']);
+        Route::put('/leads/{lead}/status', [LeadApiController::class, 'updateStatus']);
         Route::put('/leads/{lead}', [LeadApiController::class, 'update']);
         Route::delete('/leads/{lead}', [LeadApiController::class, 'destroy']);
         Route::post('/leads/{lead}/notes', [LeadApiController::class, 'addNote']);

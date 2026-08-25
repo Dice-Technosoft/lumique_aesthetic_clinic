@@ -32,12 +32,12 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">ID</th>
-                    <th style="width: 20%;">Patient Name</th>
-                    <th style="width: 18%;">Contact Info</th>
-                    <th style="width: 15%;">Procedure Interest</th>
-                    <th style="width: 12%;">Inquiry Date</th>
-                    <th style="width: 12%;">Status</th>
-                    <th style="width: 18%; text-align: right;">Actions</th>
+                    <th style="width: 22%;">Patient Name</th>
+                    <th style="width: 20%;">Contact Info</th>
+                    <th style="width: 17%;">Procedure Interest</th>
+                    <th style="width: 13%;">Inquiry Date</th>
+                    <th style="width: 13%;">Status</th>
+                    <th style="width: 10%; text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -83,7 +83,16 @@
                                     data-tooltip="Convert to Appointment" 
                                     aria-label="Convert to Appointment"
                                     style="color: var(--color-crimson); border-color: rgba(139, 21, 56, 0.3);"
-                                    onclick='openConvertModal(@json($inq))'>
+                                    data-id="{{ $inq->id }}"
+                                    data-name="{{ $inq->name }}"
+                                    data-email="{{ $inq->email }}"
+                                    data-phone="{{ $inq->phone }}"
+                                    data-service-id="{{ $inq->service_id }}"
+                                    data-date="{{ $inq->preferred_date ? $inq->preferred_date->format('Y-m-d') : '' }}"
+                                    data-time="{{ $inq->preferred_time }}"
+                                    data-message="{{ $inq->message }}"
+                                    data-status="{{ $inq->status }}"
+                                    onclick="openConvertModalFromButton(this)">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
                             </button>
 
@@ -96,21 +105,19 @@
                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                             </a>
 
-                            <!-- Call Patient -->
-                            <a href="tel:{{ $inq->phone }}" 
-                               class="action-icon-btn" 
-                               style="color: var(--color-gold-bright);"
-                               data-tooltip="Call Patient Phone"
-                               aria-label="Call Patient">
-                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                            </a>
-
                             <!-- Edit Inquiry -->
                             <button type="button" 
                                     class="action-icon-btn btn-edit" 
                                     data-tooltip="Edit Inquiry" 
                                     aria-label="Edit Inquiry" 
-                                    onclick='openEditInquiryModal(@json($inq))'>
+                                    data-id="{{ $inq->id }}"
+                                    data-name="{{ $inq->name }}"
+                                    data-email="{{ $inq->email }}"
+                                    data-phone="{{ $inq->phone }}"
+                                    data-service-id="{{ $inq->service_id }}"
+                                    data-status="{{ $inq->status }}"
+                                    data-message="{{ $inq->message }}"
+                                    onclick="openEditInquiryModalFromButton(this)">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </button>
 
@@ -334,36 +341,44 @@
     }
 
     // --- Convert Inquiry to Appointment ---
-    function openConvertModal(inq) {
-        document.getElementById('convert_inquiry_id').value = inq.id;
-        document.getElementById('convert_name').value = inq.name || '';
-        document.getElementById('convert_email').value = inq.email || '';
-        document.getElementById('convert_phone').value = inq.phone || '';
+    function openConvertModalFromButton(btn) {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name') || '';
+        const email = btn.getAttribute('data-email') || '';
+        const phone = btn.getAttribute('data-phone') || '';
+        const serviceId = btn.getAttribute('data-service-id') || '';
+        const date = btn.getAttribute('data-date') || '';
+        const time = btn.getAttribute('data-time') || '';
+        const message = btn.getAttribute('data-message') || '';
+
+        document.getElementById('convert_inquiry_id').value = id;
+        document.getElementById('convert_name').value = name;
+        document.getElementById('convert_email').value = email;
+        document.getElementById('convert_phone').value = phone;
         
         const serviceSelect = document.getElementById('convert_service');
-        if (inq.service_id) {
-            serviceSelect.value = inq.service_id;
+        if (serviceId) {
+            serviceSelect.value = serviceId;
         } else {
             serviceSelect.value = '';
         }
 
-        // Today's date by default if preferred_date not specified
         const today = new Date().toISOString().split('T')[0];
-        let prefDate = today;
-        if (inq.preferred_date) {
-            prefDate = inq.preferred_date.substring(0, 10);
-        }
-        document.getElementById('convert_date').value = prefDate;
-        document.getElementById('convert_time').value = inq.preferred_time || '11:00 AM';
-        document.getElementById('convert_notes').value = inq.message || '';
-        document.getElementById('convert_priority').value = inq.priority || 'medium';
+        document.getElementById('convert_date').value = date ? date.substring(0, 10) : today;
+        document.getElementById('convert_time').value = time || '11:00 AM';
+        document.getElementById('convert_notes').value = message;
+        document.getElementById('convert_priority').value = 'medium';
         document.getElementById('convert_estimated_value').value = '';
 
-        document.getElementById('convertModal').classList.add('active');
+        const modal = document.getElementById('convertModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
     }
 
     function closeConvertModal() {
-        document.getElementById('convertModal').classList.remove('active');
+        const modal = document.getElementById('convertModal');
+        modal.classList.remove('open');
+        modal.classList.remove('active');
     }
 
     async function handleConvertSubmit(e) {
@@ -423,27 +438,39 @@
     }
 
     // --- Edit Inquiry ---
-    function openEditInquiryModal(inq) {
-        document.getElementById('edit_inquiry_id').value = inq.id;
-        document.getElementById('edit_inq_name').value = inq.name || '';
-        document.getElementById('edit_inq_email').value = inq.email || '';
-        document.getElementById('edit_inq_phone').value = inq.phone || '';
+    function openEditInquiryModalFromButton(btn) {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name') || '';
+        const email = btn.getAttribute('data-email') || '';
+        const phone = btn.getAttribute('data-phone') || '';
+        const serviceId = btn.getAttribute('data-service-id') || '';
+        const status = btn.getAttribute('data-status') || 'new';
+        const message = btn.getAttribute('data-message') || '';
+
+        document.getElementById('edit_inquiry_id').value = id;
+        document.getElementById('edit_inq_name').value = name;
+        document.getElementById('edit_inq_email').value = email;
+        document.getElementById('edit_inq_phone').value = phone;
         
         const serviceSelect = document.getElementById('edit_inq_service');
-        if (inq.service_id) {
-            serviceSelect.value = inq.service_id;
+        if (serviceId) {
+            serviceSelect.value = serviceId;
         } else {
             serviceSelect.value = '';
         }
 
-        document.getElementById('edit_inq_status').value = inq.status || 'new';
-        document.getElementById('edit_inq_message').value = inq.message || '';
+        document.getElementById('edit_inq_status').value = status;
+        document.getElementById('edit_inq_message').value = message;
 
-        document.getElementById('inquiryModal').classList.add('active');
+        const modal = document.getElementById('inquiryModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
     }
 
     function closeInquiryModal() {
-        document.getElementById('inquiryModal').classList.remove('active');
+        const modal = document.getElementById('inquiryModal');
+        modal.classList.remove('open');
+        modal.classList.remove('active');
     }
 
     async function saveInquiry(e) {

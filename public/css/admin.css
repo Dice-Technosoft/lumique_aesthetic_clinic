@@ -1056,7 +1056,8 @@ body.admin-body {
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-.modal-overlay.open {
+.modal-overlay.open,
+.modal-overlay.active {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -1077,7 +1078,8 @@ body.admin-body {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.modal-overlay.open .modal-card {
+.modal-overlay.open .modal-card,
+.modal-overlay.active .modal-card {
   transform: translateY(0) scale(1);
 }
 

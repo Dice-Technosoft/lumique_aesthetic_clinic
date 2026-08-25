@@ -35,11 +35,11 @@
         <table class="admin-table" style="table-layout: fixed; width: 100%;">
             <thead>
                 <tr>
-                    <th style="width: 20%;">Patient / Customer</th>
+                    <th style="width: 19%;">Patient / Customer</th>
                     <th style="width: 18%;">Contact</th>
-                    <th style="width: 18%;">Treatment / Procedure</th>
-                    <th style="width: 15%;">Appointment Date</th>
-                    <th style="width: 10%;">Status</th>
+                    <th style="width: 17%;">Treatment / Procedure</th>
+                    <th style="width: 15%;">Appointment Slot</th>
+                    <th style="width: 12%;">Status</th>
                     <th style="width: 7%;">Notes</th>
                     <th style="width: 12%; text-align: right;">Actions</th>
                 </tr>
@@ -73,7 +73,14 @@
                         @endif
                     </td>
                     <td>
-                        <span class="status-badge status-{{ $lead->status }}">{{ ucfirst(str_replace('_', ' ', $lead->status)) }}</span>
+                        <select onchange="updateAppointmentStatus({{ $lead->id }}, this.value)" class="status-select status-{{ $lead->status }}">
+                            <option value="new" {{ $lead->status === 'new' ? 'selected' : '' }}>New</option>
+                            <option value="consultation_scheduled" {{ $lead->status === 'consultation_scheduled' ? 'selected' : '' }}>Scheduled</option>
+                            <option value="contacted" {{ $lead->status === 'contacted' ? 'selected' : '' }}>Contacted</option>
+                            <option value="follow_up" {{ $lead->status === 'follow_up' ? 'selected' : '' }}>Follow Up</option>
+                            <option value="converted" {{ $lead->status === 'converted' ? 'selected' : '' }}>Converted / Done</option>
+                            <option value="lost" {{ $lead->status === 'lost' ? 'selected' : '' }}>Cancelled / Lost</option>
+                        </select>
                     </td>
                     <td>
                         <div class="small text-muted">
@@ -82,13 +89,42 @@
                     </td>
                     <td style="text-align: right;">
                         <div class="table-actions-group" style="justify-content: flex-end; gap: 5px;">
-                            <!-- View / Show Details -->
-                            <button type="button" class="action-icon-btn btn-view" data-tooltip="View Details" aria-label="View Details" onclick='openViewLeadModal(@json($lead))'>
+                            <!-- View Details -->
+                            <button type="button" 
+                                    class="action-icon-btn btn-view" 
+                                    data-tooltip="View Details" 
+                                    aria-label="View Details" 
+                                    data-id="{{ $lead->id }}"
+                                    data-name="{{ $lead->name }}"
+                                    data-email="{{ $lead->email }}"
+                                    data-phone="{{ $lead->phone }}"
+                                    data-service="{{ $lead->service_name ?: ($lead->service->title ?? 'General Consultation') }}"
+                                    data-date="{{ $lead->preferred_date ? $lead->preferred_date->format('M d, Y') : 'Not Set' }}"
+                                    data-time="{{ $lead->preferred_time ?? '' }}"
+                                    data-value="{{ $lead->estimated_value ?? '' }}"
+                                    data-status="{{ $lead->status ?? 'new' }}"
+                                    data-created="{{ $lead->created_at ? $lead->created_at->format('M d, Y') : 'Website' }}"
+                                    onclick="openViewLeadModalFromButton(this)">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
 
                             <!-- Edit Appointment -->
-                            <button type="button" class="action-icon-btn btn-edit" data-tooltip="Edit Appointment" aria-label="Edit Appointment" onclick='openLeadModal(@json($lead))'>
+                            <button type="button" 
+                                    class="action-icon-btn btn-edit" 
+                                    data-tooltip="Edit Appointment" 
+                                    aria-label="Edit Appointment" 
+                                    data-id="{{ $lead->id }}"
+                                    data-name="{{ $lead->name }}"
+                                    data-email="{{ $lead->email }}"
+                                    data-phone="{{ $lead->phone }}"
+                                    data-service-id="{{ $lead->service_id }}"
+                                    data-date="{{ $lead->preferred_date ? $lead->preferred_date->format('Y-m-d') : '' }}"
+                                    data-time="{{ $lead->preferred_time }}"
+                                    data-status="{{ $lead->status }}"
+                                    data-priority="{{ $lead->priority }}"
+                                    data-value="{{ $lead->estimated_value }}"
+                                    data-notes="{{ $lead->notes }}"
+                                    onclick="openLeadModalFromButton(this)">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </button>
 
@@ -338,6 +374,36 @@
         });
     }
 
+    // Dynamic Live Status Change
+    async function updateAppointmentStatus(id, status) {
+        try {
+            const res = await fetch(`/api/v1/admin/leads/${id}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ status: status })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast('Status updated to: ' + status.replace('_', ' '), 'success');
+                const row = document.getElementById(`lead_row_${id}`);
+                if (row) {
+                    const select = row.querySelector('.status-select');
+                    if (select) {
+                        select.className = `status-select status-${status}`;
+                    }
+                }
+            } else {
+                showToast(data.message || 'Failed to update status', 'error');
+            }
+        } catch(e) {
+            showToast('Error updating status', 'error');
+        }
+    }
+
     let currentViewingLead = null;
     let autocompleteTimeout = null;
 
@@ -425,47 +491,67 @@
         }
     });
 
-    function openLeadModal(lead = null) {
+    function openLeadModal() {
         const form = document.getElementById('leadForm');
         form.reset();
         document.getElementById('lead_id').value = '';
         document.getElementById('patientSuggestionsDropdown').style.display = 'none';
 
-        if (lead) {
-            document.getElementById('leadModalTitle').innerHTML = '<span>✏️</span><span>Edit Appointment</span>';
-            document.getElementById('lead_id').value = lead.id;
-            document.getElementById('lead_name').value = lead.name || '';
-            document.getElementById('lead_email').value = lead.email || '';
-            document.getElementById('lead_phone').value = lead.phone || '';
-            
-            if (lead.service_id) {
-                document.getElementById('lead_service_id').value = lead.service_id;
-            } else {
-                document.getElementById('lead_service_id').value = '';
-            }
+        document.getElementById('leadModalTitle').innerHTML = '<span>📅</span><span>Schedule New Appointment</span>';
+        document.getElementById('lead_status').value = 'consultation_scheduled';
+        document.getElementById('lead_preferred_date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('lead_preferred_time').value = '11:00 AM';
 
-            let prefDate = '';
-            if (lead.preferred_date) {
-                prefDate = lead.preferred_date.substring(0, 10);
-            }
-            document.getElementById('lead_preferred_date').value = prefDate;
-            document.getElementById('lead_preferred_time').value = lead.preferred_time || '';
-            document.getElementById('lead_status').value = lead.status || 'consultation_scheduled';
-            document.getElementById('lead_priority').value = lead.priority || 'medium';
-            document.getElementById('lead_estimated_value').value = lead.estimated_value || '';
-            document.getElementById('lead_notes').value = lead.notes || '';
+        const modal = document.getElementById('leadModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
+    }
+
+    function openLeadModalFromButton(btn) {
+        const form = document.getElementById('leadForm');
+        form.reset();
+        document.getElementById('patientSuggestionsDropdown').style.display = 'none';
+
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name') || '';
+        const email = btn.getAttribute('data-email') || '';
+        const phone = btn.getAttribute('data-phone') || '';
+        const serviceId = btn.getAttribute('data-service-id') || '';
+        const date = btn.getAttribute('data-date') || '';
+        const time = btn.getAttribute('data-time') || '';
+        const status = btn.getAttribute('data-status') || 'consultation_scheduled';
+        const priority = btn.getAttribute('data-priority') || 'medium';
+        const value = btn.getAttribute('data-value') || '';
+        const notes = btn.getAttribute('data-notes') || '';
+
+        document.getElementById('leadModalTitle').innerHTML = '<span>✏️</span><span>Edit Appointment</span>';
+        document.getElementById('lead_id').value = id;
+        document.getElementById('lead_name').value = name;
+        document.getElementById('lead_email').value = email;
+        document.getElementById('lead_phone').value = phone;
+        
+        if (serviceId) {
+            document.getElementById('lead_service_id').value = serviceId;
         } else {
-            document.getElementById('leadModalTitle').innerHTML = '<span>📅</span><span>Schedule New Appointment</span>';
-            document.getElementById('lead_status').value = 'consultation_scheduled';
-            document.getElementById('lead_preferred_date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('lead_preferred_time').value = '11:00 AM';
+            document.getElementById('lead_service_id').value = '';
         }
 
-        document.getElementById('leadModal').classList.add('open');
+        document.getElementById('lead_preferred_date').value = date;
+        document.getElementById('lead_preferred_time').value = time;
+        document.getElementById('lead_status').value = status;
+        document.getElementById('lead_priority').value = priority;
+        document.getElementById('lead_estimated_value').value = value;
+        document.getElementById('lead_notes').value = notes;
+
+        const modal = document.getElementById('leadModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
     }
 
     function closeLeadModal() {
-        document.getElementById('leadModal').classList.remove('open');
+        const modal = document.getElementById('leadModal');
+        modal.classList.remove('open');
+        modal.classList.remove('active');
         document.getElementById('patientSuggestionsDropdown').style.display = 'none';
     }
 
@@ -525,30 +611,43 @@
         }
     }
 
-    function openViewLeadModal(lead) {
-        currentViewingLead = lead;
-        document.getElementById('viewLeadName').innerText = lead.name;
-        document.getElementById('viewLeadSub').innerText = 'Appointment ID #' + lead.id + ' • ' + (lead.created_at ? new Date(lead.created_at).toLocaleDateString() : 'Website');
-        document.getElementById('viewLeadPhone').innerHTML = `<a href="tel:${lead.phone}" style="color: var(--color-charcoal); text-decoration: none;">${lead.phone}</a>`;
-        document.getElementById('viewLeadEmail').innerHTML = `<a href="mailto:${lead.email}" style="color: var(--color-charcoal); text-decoration: none;">${lead.email}</a>`;
-        document.getElementById('viewLeadService').innerText = lead.service_name || (lead.service ? lead.service.title : 'General Consultation');
+    function openViewLeadModalFromButton(btn) {
+        currentViewingLead = {
+            id: btn.getAttribute('data-id'),
+            name: btn.getAttribute('data-name'),
+            email: btn.getAttribute('data-email'),
+            phone: btn.getAttribute('data-phone'),
+            service: btn.getAttribute('data-service'),
+            date: btn.getAttribute('data-date'),
+            time: btn.getAttribute('data-time'),
+            value: btn.getAttribute('data-value'),
+            status: btn.getAttribute('data-status'),
+            created: btn.getAttribute('data-created')
+        };
+
+        document.getElementById('viewLeadName').innerText = currentViewingLead.name;
+        document.getElementById('viewLeadSub').innerText = 'Appointment ID #' + currentViewingLead.id + ' • ' + currentViewingLead.created;
+        document.getElementById('viewLeadPhone').innerHTML = `<a href="tel:${currentViewingLead.phone}" style="color: var(--color-charcoal); text-decoration: none;">${currentViewingLead.phone}</a>`;
+        document.getElementById('viewLeadEmail').innerHTML = `<a href="mailto:${currentViewingLead.email}" style="color: var(--color-charcoal); text-decoration: none;">${currentViewingLead.email}</a>`;
+        document.getElementById('viewLeadService').innerText = currentViewingLead.service;
         
-        let dateDisplay = 'Not Set';
-        if (lead.preferred_date) {
-            dateDisplay = new Date(lead.preferred_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            if (lead.preferred_time) dateDisplay += ' (' + lead.preferred_time + ')';
-        }
+        let dateDisplay = currentViewingLead.date;
+        if (currentViewingLead.time) dateDisplay += ' (' + currentViewingLead.time + ')';
         document.getElementById('viewLeadDate').innerText = dateDisplay;
 
         const badge = document.getElementById('viewLeadStatusBadge');
-        badge.className = 'status-badge status-' + lead.status;
-        badge.innerText = (lead.status || 'new').replace('_', ' ').toUpperCase();
+        badge.className = 'status-badge status-' + currentViewingLead.status;
+        badge.innerText = (currentViewingLead.status || 'new').replace('_', ' ').toUpperCase();
 
-        document.getElementById('viewLeadModal').classList.add('open');
+        const modal = document.getElementById('viewLeadModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
     }
 
     function closeViewLeadModal() {
-        document.getElementById('viewLeadModal').classList.remove('open');
+        const modal = document.getElementById('viewLeadModal');
+        modal.classList.remove('open');
+        modal.classList.remove('active');
     }
 
     function triggerAddNoteFromView() {
@@ -601,10 +700,14 @@
         document.getElementById('note_lead_id').value = id;
         document.getElementById('note_text').value = '';
         document.getElementById('noteModalLeadName').innerText = 'Patient: ' + name;
-        document.getElementById('leadNoteModal').classList.add('open');
+        const modal = document.getElementById('leadNoteModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
     }
     function closeLeadNoteModal() {
-        document.getElementById('leadNoteModal').classList.remove('open');
+        const modal = document.getElementById('leadNoteModal');
+        modal.classList.remove('open');
+        modal.classList.remove('active');
     }
 
     function openFollowUpModal(id, name) {
@@ -613,10 +716,14 @@
         document.getElementById('fu_time').value = '';
         document.getElementById('fu_note').value = '';
         document.getElementById('fuModalLeadName').innerText = 'Patient: ' + name;
-        document.getElementById('followUpModal').classList.add('open');
+        const modal = document.getElementById('followUpModal');
+        modal.classList.add('open');
+        modal.classList.add('active');
     }
     function closeFollowUpModal() {
-        document.getElementById('followUpModal').classList.remove('open');
+        const modal = document.getElementById('followUpModal');
+        modal.classList.remove('open');
+        modal.classList.remove('active');
     }
 
     async function handleNoteSubmit(e) {

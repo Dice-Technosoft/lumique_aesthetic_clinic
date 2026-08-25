@@ -134,6 +134,36 @@ class LeadApiController extends Controller
         ], 201);
     }
 
+    public function updateStatus(Request $request, Lead $lead): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:new,contacted,consultation_scheduled,follow_up,converted,lost',
+        ]);
+
+        $lead->status = $validated['status'];
+        $lead->save();
+
+        if ($lead->inquiry) {
+            if ($validated['status'] === 'converted') {
+                $lead->inquiry->status = 'converted';
+                $lead->inquiry->save();
+            }
+        }
+
+        \App\Models\LeadActivity::create([
+            'lead_id' => $lead->id,
+            'user_id' => $request->user()?->id,
+            'activity_type' => 'status_updated',
+            'description' => "Appointment status updated to " . ucfirst(str_replace('_', ' ', $lead->status)) . ".",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment status updated to ' . ucfirst(str_replace('_', ' ', $lead->status)),
+            'data' => $lead,
+        ]);
+    }
+
     public function update(Request $request, Lead $lead): JsonResponse
     {
         $data = $request->validate([
