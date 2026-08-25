@@ -199,28 +199,9 @@
                     <label for="convert_date">Appointment Date *</label>
                     <input type="date" id="convert_date" class="form-control" required>
                 </div>
-                <div class="form-group" style="flex: 1.4;">
-                    <label>Appointment Time Slot *</label>
-                    <div style="display: flex; gap: 4px; align-items: center;">
-                        <!-- Hour 1-12 -->
-                        <select id="convert_time_hour" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
-                            @for($h = 1; $h <= 12; $h++)
-                                <option value="{{ sprintf('%02d', $h) }}" {{ $h == 11 ? 'selected' : '' }}>{{ sprintf('%02d', $h) }}</option>
-                            @endfor
-                        </select>
-                        <span style="font-weight: bold; color: var(--color-charcoal-muted);">:</span>
-                        <!-- Minute 00-59 -->
-                        <select id="convert_time_min" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
-                            @for($m = 0; $m < 60; $m += 5)
-                                <option value="{{ sprintf('%02d', $m) }}" {{ $m == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $m) }}</option>
-                            @endfor
-                        </select>
-                        <!-- AM / PM -->
-                        <select id="convert_time_ampm" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 600; min-width: 65px;">
-                            <option value="AM" selected>AM</option>
-                            <option value="PM">PM</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="flex: 1.1;">
+                    <label for="convert_preferred_time">Appointment Time Slot *</label>
+                    <input type="time" id="convert_preferred_time" class="form-control" required>
                 </div>
             </div>
 
@@ -344,42 +325,34 @@
         }
     }
 
-    // Helper: Parse Time String (e.g., "11:30 AM" or "05:00 PM")
-    function parseTimeToSelectors(timeStr, hourElId, minElId, ampmElId) {
-        if (!timeStr) {
-            document.getElementById(hourElId).value = '11';
-            document.getElementById(minElId).value = '00';
-            document.getElementById(ampmElId).value = 'AM';
-            return;
-        }
-
-        const match = timeStr.match(/(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i);
+    // Helper: Time Formatters for input[type="time"]
+    function formatTimeForInput(timeStr) {
+        if (!timeStr) return '11:00';
+        if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
         if (match) {
             let h = parseInt(match[1]);
-            let m = match[2];
-            let ampm = match[3] ? match[3].toUpperCase() : 'AM';
-            
-            if (h > 12) {
-                h -= 12;
-                ampm = 'PM';
-            }
-            if (h === 0) h = 12;
-
-            document.getElementById(hourElId).value = (h < 10 ? '0' + h : '' + h);
-            
-            // Round to nearest 5 for select option match if needed
-            let minInt = parseInt(m);
-            minInt = Math.round(minInt / 5) * 5;
-            if (minInt >= 60) minInt = 55;
-            let minFormatted = minInt < 10 ? '0' + minInt : '' + minInt;
-            
-            document.getElementById(minElId).value = minFormatted;
-            document.getElementById(ampmElId).value = ampm;
-        } else {
-            document.getElementById(hourElId).value = '11';
-            document.getElementById(minElId).value = '00';
-            document.getElementById(ampmElId).value = 'AM';
+            const m = match[2];
+            const ampm = match[3] ? match[3].toUpperCase() : '';
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            return (h < 10 ? '0' + h : '' + h) + ':' + m;
         }
+        return '11:00';
+    }
+
+    function formatTimeTo12Hour(time24) {
+        if (!time24) return '';
+        const match = time24.match(/(\d{1,2}):(\d{2})/);
+        if (match) {
+            let h = parseInt(match[1]);
+            const m = match[2];
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            if (h === 0) h = 12;
+            return (h < 10 ? '0' + h : '' + h) + ':' + m + ' ' + ampm;
+        }
+        return time24;
     }
 
     // --- Convert Inquiry to Appointment ---
@@ -407,7 +380,7 @@
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('convert_date').value = date ? date.substring(0, 10) : today;
-        parseTimeToSelectors(time, 'convert_time_hour', 'convert_time_min', 'convert_time_ampm');
+        document.getElementById('convert_preferred_time').value = formatTimeForInput(time);
         
         document.getElementById('convert_notes').value = message;
         document.getElementById('convert_estimated_value').value = '';
@@ -434,11 +407,8 @@
         const serviceId = serviceSelect.value ? parseInt(serviceSelect.value) : null;
         const serviceName = selectedOpt ? selectedOpt.getAttribute('data-title') : null;
 
-        // Combine Hour, Min, AM/PM
-        const h = document.getElementById('convert_time_hour').value;
-        const m = document.getElementById('convert_time_min').value;
-        const ap = document.getElementById('convert_time_ampm').value;
-        const formattedTime = `${h}:${m} ${ap}`;
+        const timeValue = document.getElementById('convert_preferred_time').value;
+        const formattedTime = formatTimeTo12Hour(timeValue);
 
         const payload = {
             name: document.getElementById('convert_name').value.trim(),
@@ -454,7 +424,7 @@
         };
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Converting & Sending Emails...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Converting & Moving...';
 
         try {
             const res = await fetch(`/api/v1/admin/inquiries/${id}/convert-to-appointment`, {
@@ -469,11 +439,21 @@
 
             const data = await res.json();
             if (res.ok && data.success) {
-                showToast(data.message || 'Converted to Appointment successfully!', 'success');
+                showToast(data.message || 'Converted to Appointment & moved to Appointments module!', 'success');
                 closeConvertModal();
+
+                // Instantly animate removal from inquiries table
+                const row = document.getElementById(`inquiry_row_${id}`);
+                if (row) {
+                    row.style.transition = 'all 0.4s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'scale(0.95)';
+                    setTimeout(() => row.remove(), 400);
+                }
+
                 setTimeout(() => {
                     window.location.href = "{{ route('admin.leads') }}";
-                }, 700);
+                }, 750);
             } else {
                 showToast(data.message || 'Failed to convert inquiry', 'error');
             }

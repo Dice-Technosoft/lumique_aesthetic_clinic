@@ -231,28 +231,9 @@
                     <label for="lead_preferred_date">Appointment Date</label>
                     <input type="date" id="lead_preferred_date" name="preferred_date" class="form-control">
                 </div>
-                <div class="form-group" style="flex: 1.4;">
-                    <label>Appointment Time Slot</label>
-                    <div style="display: flex; gap: 4px; align-items: center;">
-                        <!-- Hour 1-12 -->
-                        <select id="lead_time_hour" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
-                            @for($h = 1; $h <= 12; $h++)
-                                <option value="{{ sprintf('%02d', $h) }}" {{ $h == 11 ? 'selected' : '' }}>{{ sprintf('%02d', $h) }}</option>
-                            @endfor
-                        </select>
-                        <span style="font-weight: bold; color: var(--color-charcoal-muted);">:</span>
-                        <!-- Minute 00-55 -->
-                        <select id="lead_time_min" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
-                            @for($m = 0; $m < 60; $m += 5)
-                                <option value="{{ sprintf('%02d', $m) }}" {{ $m == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $m) }}</option>
-                            @endfor
-                        </select>
-                        <!-- AM / PM -->
-                        <select id="lead_time_ampm" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 600; min-width: 65px;">
-                            <option value="AM" selected>AM</option>
-                            <option value="PM">PM</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="flex: 1.1;">
+                    <label for="lead_preferred_time">Appointment Time Slot</label>
+                    <input type="time" id="lead_preferred_time" name="preferred_time" class="form-control">
                 </div>
             </div>
 
@@ -358,25 +339,9 @@
                     <label for="fu_date">Follow-up Date *</label>
                     <input type="date" id="fu_date" required class="form-control">
                 </div>
-                <div class="form-group" style="flex: 1.3;">
-                    <label>Follow-up Time</label>
-                    <div style="display: flex; gap: 4px; align-items: center;">
-                        <select id="fu_time_hour" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
-                            @for($h = 1; $h <= 12; $h++)
-                                <option value="{{ sprintf('%02d', $h) }}" {{ $h == 11 ? 'selected' : '' }}>{{ sprintf('%02d', $h) }}</option>
-                            @endfor
-                        </select>
-                        <span style="font-weight: bold; color: var(--color-charcoal-muted);">:</span>
-                        <select id="fu_time_min" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
-                            @for($m = 0; $m < 60; $m += 5)
-                                <option value="{{ sprintf('%02d', $m) }}" {{ $m == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $m) }}</option>
-                            @endfor
-                        </select>
-                        <select id="fu_time_ampm" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 600; min-width: 65px;">
-                            <option value="AM" selected>AM</option>
-                            <option value="PM">PM</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="fu_time">Follow-up Time</label>
+                    <input type="time" id="fu_time" class="form-control">
                 </div>
             </div>
             <div class="form-group mb-3">
@@ -394,6 +359,36 @@
 
 @section('scripts')
 <script>
+    // Helper: Time Formatters for input[type="time"]
+    function formatTimeForInput(timeStr) {
+        if (!timeStr) return '11:00';
+        if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (match) {
+            let h = parseInt(match[1]);
+            const m = match[2];
+            const ampm = match[3] ? match[3].toUpperCase() : '';
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            return (h < 10 ? '0' + h : '' + h) + ':' + m;
+        }
+        return '11:00';
+    }
+
+    function formatTimeTo12Hour(time24) {
+        if (!time24) return '';
+        const match = time24.match(/(\d{1,2}):(\d{2})/);
+        if (match) {
+            let h = parseInt(match[1]);
+            const m = match[2];
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            if (h === 0) h = 12;
+            return (h < 10 ? '0' + h : '' + h) + ':' + m + ' ' + ampm;
+        }
+        return time24;
+    }
+
     // Live Client-Side Realtime Search
     function filterLeadsLive(query) {
         query = query.toLowerCase().trim();
@@ -431,43 +426,6 @@
             }
         } catch(e) {
             showToast('Error updating status', 'error');
-        }
-    }
-
-    // Helper: Parse Time String (e.g., "11:30 AM" or "05:00 PM")
-    function parseTimeToSelectors(timeStr, hourElId, minElId, ampmElId) {
-        if (!timeStr) {
-            document.getElementById(hourElId).value = '11';
-            document.getElementById(minElId).value = '00';
-            document.getElementById(ampmElId).value = 'AM';
-            return;
-        }
-
-        const match = timeStr.match(/(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i);
-        if (match) {
-            let h = parseInt(match[1]);
-            let m = match[2];
-            let ampm = match[3] ? match[3].toUpperCase() : 'AM';
-            
-            if (h > 12) {
-                h -= 12;
-                ampm = 'PM';
-            }
-            if (h === 0) h = 12;
-
-            document.getElementById(hourElId).value = (h < 10 ? '0' + h : '' + h);
-            
-            let minInt = parseInt(m);
-            minInt = Math.round(minInt / 5) * 5;
-            if (minInt >= 60) minInt = 55;
-            let minFormatted = minInt < 10 ? '0' + minInt : '' + minInt;
-            
-            document.getElementById(minElId).value = minFormatted;
-            document.getElementById(ampmElId).value = ampm;
-        } else {
-            document.getElementById(hourElId).value = '11';
-            document.getElementById(minElId).value = '00';
-            document.getElementById(ampmElId).value = 'AM';
         }
     }
 
@@ -566,9 +524,7 @@
         document.getElementById('leadModalTitle').innerHTML = '<span>📅</span><span>Add Appointment</span>';
         document.getElementById('lead_status').value = 'consultation_scheduled';
         document.getElementById('lead_preferred_date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('lead_time_hour').value = '11';
-        document.getElementById('lead_time_min').value = '00';
-        document.getElementById('lead_time_ampm').value = 'AM';
+        document.getElementById('lead_preferred_time').value = '11:00';
 
         const modal = document.getElementById('leadModal');
         modal.classList.add('open');
@@ -604,7 +560,7 @@
         }
 
         document.getElementById('lead_preferred_date').value = date;
-        parseTimeToSelectors(time, 'lead_time_hour', 'lead_time_min', 'lead_time_ampm');
+        document.getElementById('lead_preferred_time').value = formatTimeForInput(time);
 
         document.getElementById('lead_status').value = status;
         document.getElementById('lead_estimated_value').value = value;
@@ -634,10 +590,8 @@
         const serviceId = serviceSelect.value ? parseInt(serviceSelect.value) : null;
         const serviceName = selectedOpt ? selectedOpt.getAttribute('data-title') : null;
 
-        const h = document.getElementById('lead_time_hour').value;
-        const m = document.getElementById('lead_time_min').value;
-        const ap = document.getElementById('lead_time_ampm').value;
-        const formattedTime = `${h}:${m} ${ap}`;
+        const timeVal = document.getElementById('lead_preferred_time').value;
+        const formattedTime = formatTimeTo12Hour(timeVal);
 
         const payload = {
             name: document.getElementById('lead_name').value.trim(),
@@ -813,7 +767,7 @@
         
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('fu_date').value = preDate || today;
-        parseTimeToSelectors(preTime, 'fu_time_hour', 'fu_time_min', 'fu_time_ampm');
+        document.getElementById('fu_time').value = formatTimeForInput(preTime);
         document.getElementById('fu_note').value = preNote || '';
         document.getElementById('fuModalLeadName').innerText = 'Patient: ' + name;
 
@@ -874,10 +828,8 @@
         btn.innerText = 'Scheduling & Notifying Admin...';
         const id = document.getElementById('fu_lead_id').value;
 
-        const h = document.getElementById('fu_time_hour').value;
-        const m = document.getElementById('fu_time_min').value;
-        const ap = document.getElementById('fu_time_ampm').value;
-        const formattedTime = `${h}:${m} ${ap}`;
+        const timeVal = document.getElementById('fu_time').value;
+        const formattedTime = formatTimeTo12Hour(timeVal);
 
         const payload = {
             follow_up_date: document.getElementById('fu_date').value,

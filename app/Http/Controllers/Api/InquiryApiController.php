@@ -28,8 +28,10 @@ class InquiryApiController extends Controller
             $query->where('type', 'contact');
         }
 
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->status !== '') {
             $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'converted');
         }
         if ($request->has('search')) {
             $s = $request->search;

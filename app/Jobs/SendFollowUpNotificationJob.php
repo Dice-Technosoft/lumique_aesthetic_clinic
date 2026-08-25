@@ -29,11 +29,8 @@ class SendFollowUpNotificationJob implements ShouldQueue
         try {
             $adminEmail = SiteSetting::get('admin_notification_email');
             
-            if (empty($adminEmail) || $adminEmail === 'info@lumiqueclinic.com') {
-                $adminEmail = SiteSetting::get('contact_email') 
-                    ?: config('mail.from.address') 
-                    ?: \App\Models\User::first()?->email 
-                    ?: 'info@dicetechnosoft.cloud';
+            if (empty($adminEmail)) {
+                return;
             }
 
             Mail::to($adminEmail)->send(new AdminFollowUpNotificationMail($this->lead, $this->followUp));

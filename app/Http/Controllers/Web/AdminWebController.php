@@ -63,6 +63,8 @@ class AdminWebController extends Controller
 
         if ($status) {
             $query->where('status', $status);
+        } else {
+            $query->where('status', '!=', 'converted');
         }
         if ($search) {
             $query->where(function ($q) use ($search) {
