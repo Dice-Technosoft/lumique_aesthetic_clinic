@@ -336,8 +336,15 @@
     }
 
     // Helper: Time Formatters for input[type="time"]
+    function getCurrentLocalTime() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    }
+
     function formatTimeForInput(timeStr) {
-        if (!timeStr) return '11:00';
+        if (!timeStr) return getCurrentLocalTime();
         if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
         const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
         if (match) {
@@ -348,7 +355,7 @@
             if (ampm === 'AM' && h === 12) h = 0;
             return (h < 10 ? '0' + h : '' + h) + ':' + m;
         }
-        return '11:00';
+        return getCurrentLocalTime();
     }
 
     function formatTimeTo12Hour(time24) {
