@@ -170,11 +170,14 @@ class InquiryApiController extends Controller
             'notes' => 'nullable|string|max:3000',
         ]);
 
+        $service = null;
         if (!empty($validated['service_id'])) {
             $service = \App\Models\Service::find($validated['service_id']);
             $validated['service_name'] = $service?->title ?? $validated['service_name'] ?? null;
-            if (empty($validated['estimated_value']) && !empty($service?->price_starting_at)) {
-                $validated['estimated_value'] = (float) preg_replace('/[^0-9.]/', '', $service->price_starting_at);
+        } elseif (!empty($validated['service_name'])) {
+            $service = \App\Models\Service::where('title', $validated['service_name'])->first();
+            if ($service) {
+                $validated['service_id'] = $service->id;
             }
         }
 
@@ -192,7 +195,7 @@ class InquiryApiController extends Controller
         $lead->email = $validated['email'];
         $lead->phone = $validated['phone'];
         $lead->service_id = $validated['service_id'] ?? null;
-        $lead->service_name = $validated['service_name'] ?? 'General Consultation';
+        $lead->service_name = $validated['service_name'] ?: ($service?->title ?: 'General Consultation');
         $lead->preferred_date = $validated['preferred_date'];
         $lead->preferred_time = $validated['preferred_time'] ?? null;
         $lead->status = 'consultation_scheduled';

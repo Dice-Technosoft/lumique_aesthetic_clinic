@@ -94,6 +94,7 @@
                                     data-email="{{ $inq->email }}"
                                     data-phone="{{ $inq->phone }}"
                                     data-service-id="{{ $inq->service_id }}"
+                                    data-service-name="{{ $inq->service_name ?: ($inq->service->title ?? '') }}"
                                     data-date="{{ $inq->preferred_date ? $inq->preferred_date->format('Y-m-d') : '' }}"
                                     data-time="{{ $inq->preferred_time }}"
                                     data-message="{{ $inq->message }}"
@@ -371,6 +372,7 @@
         const email = btn.getAttribute('data-email') || '';
         const phone = btn.getAttribute('data-phone') || '';
         const serviceId = btn.getAttribute('data-service-id') || '';
+        const serviceName = btn.getAttribute('data-service-name') || '';
         const date = btn.getAttribute('data-date') || '';
         const time = btn.getAttribute('data-time') || '';
         const message = btn.getAttribute('data-message') || '';
@@ -381,10 +383,19 @@
         document.getElementById('convert_phone').value = phone;
         
         const serviceSelect = document.getElementById('convert_service');
+        serviceSelect.value = '';
         if (serviceId) {
             serviceSelect.value = serviceId;
-        } else {
-            serviceSelect.value = '';
+        }
+        if (!serviceSelect.value && serviceName) {
+            for (let i = 0; i < serviceSelect.options.length; i++) {
+                const opt = serviceSelect.options[i];
+                const optTitle = opt.getAttribute('data-title') || opt.text;
+                if (optTitle && (optTitle.toLowerCase().includes(serviceName.toLowerCase()) || serviceName.toLowerCase().includes(optTitle.toLowerCase()))) {
+                    serviceSelect.selectedIndex = i;
+                    break;
+                }
+            }
         }
 
         const today = new Date().toISOString().split('T')[0];
@@ -424,7 +435,10 @@
         const serviceSelect = document.getElementById('convert_service');
         const selectedOpt = serviceSelect.options[serviceSelect.selectedIndex];
         const serviceId = serviceSelect.value ? parseInt(serviceSelect.value) : null;
-        const serviceName = selectedOpt ? selectedOpt.getAttribute('data-title') : null;
+        let serviceName = null;
+        if (selectedOpt && serviceSelect.value) {
+            serviceName = selectedOpt.getAttribute('data-title') || selectedOpt.text.split('(')[0].trim();
+        }
 
         const timeValue = document.getElementById('convert_preferred_time').value;
         const formattedTime = formatTimeTo12Hour(timeValue);
