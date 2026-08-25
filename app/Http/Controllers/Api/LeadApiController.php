@@ -217,9 +217,13 @@ class LeadApiController extends Controller
         ]);
 
         $followUp = $this->leadService->scheduleFollowUp($lead, $data, $request->user());
+
+        // Dispatch Follow-up notification email to admin
+        \App\Jobs\SendFollowUpNotificationJob::dispatch($lead, $followUp);
+
         return response()->json([
             'success' => true,
-            'message' => 'Follow-up scheduled successfully',
+            'message' => 'Follow-up scheduled successfully & notification dispatched to admin!',
             'data' => $followUp,
         ]);
     }

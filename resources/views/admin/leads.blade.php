@@ -45,6 +45,9 @@
             </thead>
             <tbody>
                 @forelse($leads as $lead)
+                @php
+                    $activeFu = $lead->followups->where('status', '!=', 'completed')->sortByDesc('follow_up_date')->first() ?? $lead->followups->sortByDesc('created_at')->first();
+                @endphp
                 <tr id="lead_row_{{ $lead->id }}" class="lead-data-row" data-search="{{ strtolower($lead->name . ' ' . $lead->email . ' ' . $lead->phone . ' ' . ($lead->service_name ?? '') . ' ' . ($lead->service->title ?? '')) }}">
                     <td style="word-break: break-word;">
                         <strong>{{ $lead->name }}</strong>
@@ -103,6 +106,11 @@
                                     data-value="{{ $lead->estimated_value ?? '' }}"
                                     data-status="{{ $lead->status ?? 'new' }}"
                                     data-created="{{ $lead->created_at ? $lead->created_at->format('M d, Y') : 'Website' }}"
+                                    data-fu-date="{{ $activeFu && $activeFu->follow_up_date ? $activeFu->follow_up_date->format('M d, Y') : '' }}"
+                                    data-fu-rawdate="{{ $activeFu && $activeFu->follow_up_date ? $activeFu->follow_up_date->format('Y-m-d') : '' }}"
+                                    data-fu-time="{{ $activeFu ? $activeFu->follow_up_time : '' }}"
+                                    data-fu-note="{{ $activeFu ? $activeFu->note : '' }}"
+                                    data-fu-status="{{ $activeFu ? $activeFu->status : '' }}"
                                     onclick="openViewLeadModalFromButton(this)">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
@@ -154,7 +162,7 @@
         <div class="modal-header" style="margin-bottom: 1.25rem;">
             <h3 id="leadModalTitle" style="display: flex; align-items: center; gap: 8px; margin: 0 0 4px 0;">
                 <span>📅</span>
-                <span>Schedule / Edit Appointment</span>
+                <span>Add Appointment</span>
             </h3>
             <p class="text-muted" style="font-size: 0.82rem; margin: 0;">Create or update clinical appointment details & notify patient</p>
         </div>
@@ -280,7 +288,7 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
             <div style="background: var(--color-bg-light); padding: 0.75rem 0.9rem; border-radius: 8px;">
                 <small class="text-muted" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">Phone</small>
                 <div id="viewLeadPhone" style="font-weight: 600; margin-top: 2px;">-</div>
@@ -299,9 +307,12 @@
             </div>
         </div>
 
+        <!-- Dynamic Follow-Up Card Container -->
+        <div id="viewLeadFollowupContainer" style="display: none; margin-bottom: 1.25rem;"></div>
+
         <div style="display: flex; gap: 0.75rem; margin-bottom: 1.25rem;">
             <button type="button" class="btn btn-outline-gold btn-sm" style="flex: 1;" onclick="triggerAddNoteFromView()">+ Add Note</button>
-            <button type="button" class="btn btn-gold btn-sm" style="flex: 1;" onclick="triggerFollowUpFromView()">Schedule Follow-up</button>
+            <button type="button" class="btn btn-gold btn-sm" id="viewLeadFuBtn" style="flex: 1;" onclick="triggerFollowUpFromView()">Schedule Follow-up</button>
         </div>
 
         <div style="display: flex; justify-content: flex-end;">
@@ -337,28 +348,44 @@
     <div class="modal-card" style="max-width: 550px; padding: 1.75rem;">
         <button class="modal-close" onclick="closeFollowUpModal()">&times;</button>
         <div class="modal-header" style="margin-bottom: 1rem;">
-            <h3 style="margin: 0 0 4px 0;">Schedule Patient Follow-up</h3>
+            <h3 id="followUpModalTitle" style="margin: 0 0 4px 0;">Schedule Patient Follow-up</h3>
             <p id="fuModalLeadName" class="text-muted" style="font-size: 0.82rem; margin: 0;"></p>
         </div>
         <form onsubmit="handleFollowUpSubmit(event)">
             <input type="hidden" id="fu_lead_id">
-            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div class="form-row" style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem; align-items: flex-end;">
                 <div class="form-group" style="flex: 1;">
                     <label for="fu_date">Follow-up Date *</label>
                     <input type="date" id="fu_date" required class="form-control">
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="fu_time">Time (Optional)</label>
-                    <input type="time" id="fu_time" class="form-control">
+                <div class="form-group" style="flex: 1.3;">
+                    <label>Follow-up Time</label>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <select id="fu_time_hour" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
+                            @for($h = 1; $h <= 12; $h++)
+                                <option value="{{ sprintf('%02d', $h) }}" {{ $h == 11 ? 'selected' : '' }}>{{ sprintf('%02d', $h) }}</option>
+                            @endfor
+                        </select>
+                        <span style="font-weight: bold; color: var(--color-charcoal-muted);">:</span>
+                        <select id="fu_time_min" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 500;">
+                            @for($m = 0; $m < 60; $m += 5)
+                                <option value="{{ sprintf('%02d', $m) }}" {{ $m == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $m) }}</option>
+                            @endfor
+                        </select>
+                        <select id="fu_time_ampm" class="form-control" style="padding: 0.45rem 0.4rem; font-weight: 600; min-width: 65px;">
+                            <option value="AM" selected>AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="form-group mb-3">
-                <label for="fu_note">Follow-up Objective</label>
-                <textarea id="fu_note" rows="2" class="form-control" placeholder="e.g. Discuss treatment plan & post-care guidance"></textarea>
+                <label for="fu_note">Follow-up Objective / Note</label>
+                <textarea id="fu_note" rows="2" class="form-control" placeholder="e.g. Check skin recovery & schedule session 2"></textarea>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <button type="button" class="btn btn-outline-gold btn-sm" onclick="closeFollowUpModal()">Cancel</button>
-                <button type="submit" id="saveFuBtn" class="btn btn-gold btn-sm">Schedule Follow-up</button>
+                <button type="submit" id="saveFuBtn" class="btn btn-gold btn-sm">Schedule & Send Alert</button>
             </div>
         </form>
     </div>
@@ -667,7 +694,12 @@
             time: btn.getAttribute('data-time'),
             value: btn.getAttribute('data-value'),
             status: btn.getAttribute('data-status'),
-            created: btn.getAttribute('data-created')
+            created: btn.getAttribute('data-created'),
+            fuDate: btn.getAttribute('data-fu-date'),
+            fuRawDate: btn.getAttribute('data-fu-rawdate'),
+            fuTime: btn.getAttribute('data-fu-time'),
+            fuNote: btn.getAttribute('data-fu-note'),
+            fuStatus: btn.getAttribute('data-fu-status')
         };
 
         document.getElementById('viewLeadName').innerText = currentViewingLead.name;
@@ -683,6 +715,31 @@
         const badge = document.getElementById('viewLeadStatusBadge');
         badge.className = 'status-badge status-' + currentViewingLead.status;
         badge.innerText = (currentViewingLead.status || 'new').replace('_', ' ').toUpperCase();
+
+        // Handle Active Follow-up Display
+        const fuContainer = document.getElementById('viewLeadFollowupContainer');
+        const fuBtn = document.getElementById('viewLeadFuBtn');
+
+        if (currentViewingLead.fuDate) {
+            fuContainer.innerHTML = `
+                <div style="background: rgba(139, 21, 56, 0.05); border: 1px solid rgba(139, 21, 56, 0.2); padding: 0.85rem 1rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="color: var(--color-crimson); font-size: 0.88rem;">📅 Scheduled Follow-Up</strong>
+                        <span class="status-badge status-${currentViewingLead.fuStatus || 'follow_up'}">${(currentViewingLead.fuStatus || 'Pending').toUpperCase()}</span>
+                    </div>
+                    <div style="font-weight: 600; color: var(--color-charcoal); margin-top: 4px;">
+                        ${currentViewingLead.fuDate} ${currentViewingLead.fuTime ? 'at ' + currentViewingLead.fuTime : ''}
+                    </div>
+                    ${currentViewingLead.fuNote ? `<div style="font-size: 0.82rem; color: var(--color-charcoal-muted); margin-top: 3px; font-style: italic;">📝 "${currentViewingLead.fuNote}"</div>` : ''}
+                </div>
+            `;
+            fuContainer.style.display = 'block';
+            fuBtn.innerText = 'Reschedule Follow-up';
+        } else {
+            fuContainer.innerHTML = '';
+            fuContainer.style.display = 'none';
+            fuBtn.innerText = 'Schedule Follow-up';
+        }
 
         const modal = document.getElementById('viewLeadModal');
         modal.classList.add('open');
@@ -704,7 +761,7 @@
     function triggerFollowUpFromView() {
         if (!currentViewingLead) return;
         closeViewLeadModal();
-        openFollowUpModal(currentViewingLead.id, currentViewingLead.name);
+        openFollowUpModal(currentViewingLead.id, currentViewingLead.name, currentViewingLead.fuRawDate, currentViewingLead.fuTime, currentViewingLead.fuNote);
     }
 
     function deleteLead(id, name) {
@@ -751,16 +808,26 @@
         modal.classList.remove('active');
     }
 
-    function openFollowUpModal(id, name) {
+    function openFollowUpModal(id, name, preDate = '', preTime = '', preNote = '') {
         document.getElementById('fu_lead_id').value = id;
-        document.getElementById('fu_date').value = '';
-        document.getElementById('fu_time').value = '';
-        document.getElementById('fu_note').value = '';
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fu_date').value = preDate || today;
+        parseTimeToSelectors(preTime, 'fu_time_hour', 'fu_time_min', 'fu_time_ampm');
+        document.getElementById('fu_note').value = preNote || '';
         document.getElementById('fuModalLeadName').innerText = 'Patient: ' + name;
+
+        if (preDate) {
+            document.getElementById('followUpModalTitle').innerText = 'Reschedule Patient Follow-up';
+        } else {
+            document.getElementById('followUpModalTitle').innerText = 'Schedule Patient Follow-up';
+        }
+
         const modal = document.getElementById('followUpModal');
         modal.classList.add('open');
         modal.classList.add('active');
     }
+
     function closeFollowUpModal() {
         const modal = document.getElementById('followUpModal');
         modal.classList.remove('open');
@@ -804,11 +871,17 @@
         e.preventDefault();
         const btn = document.getElementById('saveFuBtn');
         btn.disabled = true;
-        btn.innerText = 'Scheduling...';
+        btn.innerText = 'Scheduling & Notifying Admin...';
         const id = document.getElementById('fu_lead_id').value;
+
+        const h = document.getElementById('fu_time_hour').value;
+        const m = document.getElementById('fu_time_min').value;
+        const ap = document.getElementById('fu_time_ampm').value;
+        const formattedTime = `${h}:${m} ${ap}`;
+
         const payload = {
             follow_up_date: document.getElementById('fu_date').value,
-            follow_up_time: document.getElementById('fu_time').value,
+            follow_up_time: formattedTime,
             note: document.getElementById('fu_note').value,
         };
 
@@ -824,7 +897,7 @@
             });
             if (res.ok) {
                 closeFollowUpModal();
-                showToast('Follow-up scheduled successfully!', 'success');
+                showToast('Follow-up scheduled successfully & email alert sent to admin!', 'success');
                 setTimeout(() => location.reload(), 800);
             } else {
                 showToast('Error scheduling follow-up', 'error');
@@ -833,7 +906,7 @@
             showToast('Network error scheduling follow-up', 'error');
         } finally {
             btn.disabled = false;
-            btn.innerText = 'Schedule Follow-up';
+            btn.innerText = 'Schedule & Send Alert';
         }
     }
 </script>
