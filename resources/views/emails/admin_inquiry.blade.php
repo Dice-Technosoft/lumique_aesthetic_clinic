@@ -4,61 +4,89 @@
     <meta charset="utf-8">
     <title>New Website Inquiry</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f7f4f2; margin: 0; padding: 20px; color: #222; }
-        .card { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 5px solid #7A1C2E; }
-        .header { background: #14080B; color: #D4AF37; padding: 25px; text-align: center; }
-        .header h2 { margin: 0; font-size: 22px; letter-spacing: 1px; }
-        .content { padding: 30px; }
-        .field { margin-bottom: 15px; border-bottom: 1px solid #f0eae7; padding-bottom: 10px; }
-        .field-label { font-size: 12px; text-transform: uppercase; color: #7A1C2E; font-weight: bold; margin-bottom: 3px; }
-        .field-value { font-size: 15px; color: #333; }
-        .message-box { background: #faf6f5; padding: 15px; border-radius: 6px; border-left: 3px solid #7A1C2E; font-style: italic; }
-        .footer { background: #faf6f5; padding: 15px; text-align: center; font-size: 12px; color: #888; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f3f0; margin: 0; padding: 24px; color: #222; }
+        .card { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.07); border: 1px solid #e8e0d8; }
+        .header { background: #14080B; color: #D4AF37; padding: 24px 20px; text-align: center; }
+        .header h2 { margin: 0 0 6px 0; font-size: 20px; letter-spacing: 1.5px; font-weight: 700; }
+        .badge { display: inline-block; background: #7A1C2E; color: #ffffff; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+        .content { padding: 24px 28px; }
+        .source-bar { display: flex; justify-content: space-between; background: #faf7f5; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; border: 1px solid #ede4dc; font-size: 12px; color: #665; }
+        .field { margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #f2ece8; }
+        .field-label { font-size: 11px; text-transform: uppercase; color: #7A1C2E; font-weight: 700; margin-bottom: 3px; letter-spacing: 0.5px; }
+        .field-value { font-size: 15px; color: #2a2a2a; }
+        .message-box { background: #faf5f5; padding: 12px 14px; border-radius: 6px; border-left: 3px solid #7A1C2E; font-style: italic; color: #444; font-size: 14px; margin-top: 4px; }
+        .wa-btn-wrapper { text-align: center; margin: 24px 0 10px 0; }
+        .wa-btn { display: inline-block; background-color: #25D366; color: #ffffff !important; text-decoration: none; padding: 12px 28px; border-radius: 30px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35); }
+        .footer { background: #faf7f5; padding: 14px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ede4dc; }
     </style>
 </head>
 <body>
+    @php
+        $rawPhone = preg_replace('/[^0-9]/', '', $inquiry->phone);
+        if (strlen($rawPhone) === 10) {
+            $whatsappPhone = '91' . $rawPhone;
+        } else {
+            $whatsappPhone = $rawPhone;
+        }
+        $whatsappMsg = urlencode("Hello " . $inquiry->name . ", this is Lumique Aesthetic Clinic regarding your inquiry for " . ($inquiry->service_name ?: 'consultation') . ".");
+    @endphp
+
     <div class="card">
         <div class="header">
             <h2>LUMIQUE AESTHETIC CLINIC</h2>
-            <p style="margin: 5px 0 0; font-size: 13px; color: #e0d0c0;">New Website Inquiry Notification</p>
+            <div class="badge">NEW WEBSITE INQUIRY</div>
         </div>
+
         <div class="content">
+            <div class="source-bar">
+                <span><strong>Source:</strong> {{ $inquiry->source ?: 'Website Contact Form' }}</span>
+                <span><strong>Date:</strong> {{ $inquiry->created_at ? $inquiry->created_at->format('M d, Y h:i A') : date('M d, Y') }}</span>
+            </div>
+
             <div class="field">
                 <div class="field-label">Patient Name</div>
-                <div class="field-value">{{ $inquiry->name }}</div>
+                <div class="field-value"><strong>{{ $inquiry->name }}</strong></div>
             </div>
+
             <div class="field">
-                <div class="field-label">Contact Details</div>
+                <div class="field-label">Contact Information</div>
                 <div class="field-value">
-                    Email: <a href="mailto:{{ $inquiry->email }}">{{ $inquiry->email }}</a><br>
-                    Phone: <a href="tel:{{ $inquiry->phone }}">{{ $inquiry->phone }}</a>
+                    📞 Phone: <a href="tel:{{ $inquiry->phone }}" style="color: #222; text-decoration: none; font-weight: 600;">{{ $inquiry->phone }}</a><br>
+                    ✉️ Email: <a href="mailto:{{ $inquiry->email }}" style="color: #7A1C2E; text-decoration: none;">{{ $inquiry->email }}</a>
                 </div>
             </div>
+
+            @if($inquiry->service_name)
+            <div class="field">
+                <div class="field-label">Interested Procedure / Treatment</div>
+                <div class="field-value" style="color: #7A1C2E; font-weight: 600;">{{ $inquiry->service_name }}</div>
+            </div>
+            @endif
+
             @if($inquiry->subject)
             <div class="field">
                 <div class="field-label">Subject</div>
                 <div class="field-value">{{ $inquiry->subject }}</div>
             </div>
             @endif
-            @if($inquiry->service_name)
-            <div class="field">
-                <div class="field-label">Interested Service / Treatment</div>
-                <div class="field-value">{{ $inquiry->service_name }}</div>
-            </div>
-            @endif
+
             @if($inquiry->message)
-            <div class="field">
+            <div class="field" style="border-bottom: none;">
                 <div class="field-label">Patient Message</div>
-                <div class="message-box">{{ $inquiry->message }}</div>
+                <div class="message-box">"{{ $inquiry->message }}"</div>
             </div>
             @endif
-            <div class="field">
-                <div class="field-label">Submission Details</div>
-                <div class="field-value">Source: {{ $inquiry->source }} &bull; {{ $inquiry->created_at->format('M d, Y h:i A') }}</div>
+
+            <!-- Direct Connect on WhatsApp Button -->
+            <div class="wa-btn-wrapper">
+                <a href="https://wa.me/{{ $whatsappPhone }}?text={{ $whatsappMsg }}" target="_blank" class="wa-btn">
+                    💬 Connect on WhatsApp
+                </a>
             </div>
         </div>
+
         <div class="footer">
-            &copy; {{ date('Y') }} Lumique Aesthetic Clinic &bull; Bandra West, Mumbai &bull; Internal CRM Alert
+            &copy; {{ date('Y') }} Lumique Aesthetic Clinic &bull; Bandra West, Mumbai &bull; Internal CRM Notification
         </div>
     </div>
 </body>

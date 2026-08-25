@@ -37,4 +37,14 @@ class LeadFollowUp extends Model
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+
+    public function getFormattedTimeAttribute(): ?string
+    {
+        if (empty($this->follow_up_time)) return null;
+        try {
+            return \Carbon\Carbon::parse($this->follow_up_time)->format('h:i A');
+        } catch (\Throwable $e) {
+            return (string) $this->follow_up_time;
+        }
+    }
 }

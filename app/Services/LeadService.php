@@ -48,11 +48,20 @@ class LeadService
 
     public function scheduleFollowUp(Lead $lead, array $data, ?User $user = null): LeadFollowUp
     {
+        $time = $data['follow_up_time'] ?? null;
+        if (!empty($time)) {
+            try {
+                $time = \Carbon\Carbon::parse($time)->format('H:i:s');
+            } catch (\Throwable $e) {
+                $time = null;
+            }
+        }
+
         $followUp = LeadFollowUp::create([
             'lead_id' => $lead->id,
             'assigned_to' => $data['assigned_to'] ?? $user?->id,
             'follow_up_date' => $data['follow_up_date'],
-            'follow_up_time' => $data['follow_up_time'] ?? null,
+            'follow_up_time' => $time,
             'note' => $data['note'] ?? null,
             'status' => 'pending',
         ]);
