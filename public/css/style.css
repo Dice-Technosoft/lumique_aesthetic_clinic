@@ -972,6 +972,14 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+.doctors-single-center {
+  display: block;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
 .grid-3 {
   display: grid;
   grid-template-columns: 1fr;

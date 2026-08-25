@@ -80,7 +80,7 @@
       </p>
     </div>
 
-    <div class="grid-2" style="gap: 2.5rem;">
+    <div class="{{ (isset($team) && count($team) === 1) ? 'doctors-single-center' : 'grid-2' }}" style="{{ (isset($team) && count($team) === 1) ? 'max-width: 620px; margin: 0 auto;' : 'gap: 2.5rem;' }}">
       @foreach($team as $member)
       <div class="luxury-card reveal" style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; border-radius: 8px;">
         <div>
