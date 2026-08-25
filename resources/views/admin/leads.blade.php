@@ -27,7 +27,7 @@
                     <a href="{{ route('admin.leads', ['status' => $status]) }}" class="search-clear-link" title="Clear search">&times;</a>
                 @endif
             </form>
-            <button class="btn btn-gold btn-sm" onclick="openLeadModal()">+ Book Appointment</button>
+            <button class="btn btn-gold btn-sm" onclick="openLeadModal()">+ Add</button>
         </div>
     </div>
 
@@ -536,7 +536,7 @@
         document.getElementById('lead_id').value = '';
         document.getElementById('patientSuggestionsDropdown').style.display = 'none';
 
-        document.getElementById('leadModalTitle').innerHTML = '<span>📅</span><span>Schedule New Appointment</span>';
+        document.getElementById('leadModalTitle').innerHTML = '<span>📅</span><span>Add Appointment</span>';
         document.getElementById('lead_status').value = 'consultation_scheduled';
         document.getElementById('lead_preferred_date').value = new Date().toISOString().split('T')[0];
         document.getElementById('lead_time_hour').value = '11';
@@ -708,11 +708,7 @@
     }
 
     function deleteLead(id, name) {
-        if (!confirm(`Are you sure you want to permanently delete appointment #${id} for "${name}"?`)) {
-            return;
-        }
-
-        (async () => {
+        confirmDeleteModal('Delete Appointment', name, async () => {
             try {
                 const res = await fetch(`/api/v1/admin/leads/${id}`, {
                     method: 'DELETE',
@@ -738,7 +734,7 @@
             } catch(err) {
                 showToast('Network error deleting appointment', 'error');
             }
-        })();
+        });
     }
 
     function openLeadNoteModal(id, name) {

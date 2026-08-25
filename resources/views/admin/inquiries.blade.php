@@ -572,36 +572,34 @@
         }
     }
 
-    async function deleteInquiry(id, name) {
-        if (!confirm(`Are you sure you want to permanently delete inquiry #${id} for "${name}"?`)) {
-            return;
-        }
+    function deleteInquiry(id, name) {
+        confirmDeleteModal('Delete Inquiry', name, async () => {
+            try {
+                const res = await fetch(`/api/v1/admin/inquiries/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
 
-        try {
-            const res = await fetch(`/api/v1/admin/inquiries/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast('Inquiry deleted successfully', 'success');
+                    const row = document.getElementById(`inquiry_row_${id}`);
+                    if (row) {
+                        row.style.transition = 'all 0.3s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'scale(0.95)';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                } else {
+                    showToast(data.message || 'Failed to delete inquiry', 'error');
                 }
-            });
-
-            const data = await res.json();
-            if (res.ok && data.success) {
-                showToast('Inquiry deleted successfully', 'success');
-                const row = document.getElementById(`inquiry_row_${id}`);
-                if (row) {
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '0';
-                    row.style.transform = 'scale(0.95)';
-                    setTimeout(() => row.remove(), 300);
-                }
-            } else {
-                showToast(data.message || 'Failed to delete inquiry', 'error');
+            } catch (err) {
+                showToast('Error deleting inquiry', 'error');
             }
-        } catch (err) {
-            showToast('Error deleting inquiry', 'error');
-        }
+        });
     }
 </script>
 @endsection
