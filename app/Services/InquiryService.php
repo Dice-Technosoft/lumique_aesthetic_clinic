@@ -48,6 +48,17 @@ class InquiryService
 
             // Only automatically create Lead in CRM for direct Appointment bookings
             if ($inquiry->type === 'appointment') {
+                $service = null;
+                if (!empty($inquiry->service_id)) {
+                    $service = Service::find($inquiry->service_id);
+                } elseif (!empty($inquiry->service_name)) {
+                    $service = Service::where('title', $inquiry->service_name)->first();
+                }
+                $estimatedPrice = null;
+                if ($service && !empty($service->price_starting_at)) {
+                    $estimatedPrice = (float) preg_replace('/[^0-9.]/', '', $service->price_starting_at);
+                }
+
                 $defaultSource = LeadSource::where('slug', 'website-appointment-modal')->first() 
                     ?? LeadSource::where('slug', 'website-contact-form')->first();
                 $lead = Lead::create([
@@ -62,6 +73,7 @@ class InquiryService
                     'priority' => $inquiry->priority,
                     'preferred_date' => $inquiry->preferred_date,
                     'preferred_time' => $inquiry->preferred_time,
+                    'estimated_value' => $estimatedPrice,
                     'notes' => $inquiry->message,
                 ]);
 

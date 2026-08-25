@@ -51,9 +51,6 @@
                 <tr id="lead_row_{{ $lead->id }}" class="lead-data-row" data-search="{{ strtolower($lead->name . ' ' . $lead->email . ' ' . $lead->phone . ' ' . ($lead->service_name ?? '') . ' ' . ($lead->service->title ?? '')) }}">
                     <td style="word-break: break-word;">
                         <strong>{{ $lead->name }}</strong>
-                        @if($lead->estimated_value)
-                        <div class="small gold-text" style="font-weight: 600;">Est. ₹{{ number_format($lead->estimated_value, 2) }}</div>
-                        @endif
                         @if($lead->notesList->count() > 0)
                         <div class="small text-muted" style="font-size: 0.75rem; margin-top: 2px;">
                             💬 {{ $lead->notesList->count() }} note{{ $lead->notesList->count() > 1 ? 's' : '' }}
@@ -66,6 +63,14 @@
                     </td>
                     <td style="word-break: break-word;">
                         <span class="badge badge-gold">{{ $lead->service_name ?: ($lead->service->title ?? 'General Consultation') }}</span>
+                        @php
+                            $leadVal = $lead->estimated_value ?: ($lead->service?->price_starting_at ? (float) preg_replace('/[^0-9.]/', '', $lead->service->price_starting_at) : null);
+                        @endphp
+                        @if($leadVal)
+                        <div class="small font-weight-bold" style="color: var(--color-crimson); font-size: 0.82rem; margin-top: 4px; font-weight: 700;">
+                            ₹{{ number_format((float)$leadVal, 0) }}
+                        </div>
+                        @endif
                     </td>
                     <td>
                         @if($lead->preferred_date)

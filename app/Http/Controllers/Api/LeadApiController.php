@@ -88,9 +88,14 @@ class LeadApiController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        if (!empty($data['service_id']) && empty($data['service_name'])) {
+        if (!empty($data['service_id'])) {
             $svc = \App\Models\Service::find($data['service_id']);
-            $data['service_name'] = $svc?->title;
+            if (empty($data['service_name'])) {
+                $data['service_name'] = $svc?->title;
+            }
+            if (empty($data['estimated_value']) && !empty($svc?->price_starting_at)) {
+                $data['estimated_value'] = (float) preg_replace('/[^0-9.]/', '', $svc->price_starting_at);
+            }
         }
 
         $lead = $this->leadService->createLead($data, $request->user());
@@ -171,9 +176,14 @@ class LeadApiController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        if (!empty($data['service_id']) && empty($data['service_name'])) {
+        if (!empty($data['service_id'])) {
             $svc = \App\Models\Service::find($data['service_id']);
-            $data['service_name'] = $svc?->title;
+            if (empty($data['service_name'])) {
+                $data['service_name'] = $svc?->title;
+            }
+            if (empty($data['estimated_value']) && !empty($svc?->price_starting_at)) {
+                $data['estimated_value'] = (float) preg_replace('/[^0-9.]/', '', $svc->price_starting_at);
+            }
         }
 
         $lead->update($data);

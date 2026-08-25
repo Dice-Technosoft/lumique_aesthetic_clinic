@@ -173,6 +173,9 @@ class InquiryApiController extends Controller
         if (!empty($validated['service_id'])) {
             $service = \App\Models\Service::find($validated['service_id']);
             $validated['service_name'] = $service?->title ?? $validated['service_name'] ?? null;
+            if (empty($validated['estimated_value']) && !empty($service?->price_starting_at)) {
+                $validated['estimated_value'] = (float) preg_replace('/[^0-9.]/', '', $service->price_starting_at);
+            }
         }
 
         // Mark existing inquiry as converted

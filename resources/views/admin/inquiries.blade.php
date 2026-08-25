@@ -58,6 +58,15 @@
                         <span class="badge {{ $inq->status === 'converted' ? 'badge-gold' : 'badge-neutral' }} inq-service-badge">
                             {{ $inq->service_name ?: ($inq->service->title ?? 'General Inquiry') }}
                         </span>
+                        @php
+                            $inqService = $inq->service ?? ($inq->service_name ? \App\Models\Service::where('title', $inq->service_name)->first() : null);
+                            $inqPrice = $inqService?->price_starting_at ? (float) preg_replace('/[^0-9.]/', '', $inqService->price_starting_at) : null;
+                        @endphp
+                        @if($inqPrice)
+                        <div class="small font-weight-bold" style="color: var(--color-crimson); font-size: 0.82rem; margin-top: 4px; font-weight: 700;">
+                            ₹{{ number_format((float)$inqPrice, 0) }}
+                        </div>
+                        @endif
                     </td>
                     <td>
                         <span class="inq-requested-date">{{ $inq->created_at ? $inq->created_at->format('M d, Y') : '-' }}</span>
