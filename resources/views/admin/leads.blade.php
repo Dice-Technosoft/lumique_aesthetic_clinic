@@ -35,13 +35,12 @@
         <table class="admin-table" style="table-layout: fixed; width: 100%;">
             <thead>
                 <tr>
-                    <th style="width: 19%;">Patient / Customer</th>
-                    <th style="width: 18%;">Contact</th>
-                    <th style="width: 17%;">Treatment / Procedure</th>
+                    <th style="width: 22%;">Patient / Customer</th>
+                    <th style="width: 20%;">Contact</th>
+                    <th style="width: 20%;">Treatment / Procedure</th>
                     <th style="width: 15%;">Appointment Slot</th>
                     <th style="width: 12%;">Status</th>
-                    <th style="width: 7%;">Notes</th>
-                    <th style="width: 12%; text-align: right; min-width: 125px;">Actions</th>
+                    <th style="width: 11%; text-align: right; min-width: 110px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -51,6 +50,11 @@
                         <strong>{{ $lead->name }}</strong>
                         @if($lead->estimated_value)
                         <div class="small gold-text" style="font-weight: 600;">Est. ₹{{ number_format($lead->estimated_value, 2) }}</div>
+                        @endif
+                        @if($lead->notesList->count() > 0)
+                        <div class="small text-muted" style="font-size: 0.75rem; margin-top: 2px;">
+                            💬 {{ $lead->notesList->count() }} note{{ $lead->notesList->count() > 1 ? 's' : '' }}
+                        </div>
                         @endif
                     </td>
                     <td style="word-break: break-word;">
@@ -81,11 +85,6 @@
                             <option value="converted" {{ $lead->status === 'converted' ? 'selected' : '' }}>Converted / Done</option>
                             <option value="lost" {{ $lead->status === 'lost' ? 'selected' : '' }}>Cancelled / Lost</option>
                         </select>
-                    </td>
-                    <td>
-                        <div class="small text-muted">
-                            {{ $lead->notesList->count() }} notes
-                        </div>
                     </td>
                     <td style="text-align: right;">
                         <div class="table-actions-group" style="justify-content: flex-end; gap: 5px;">
@@ -136,7 +135,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-5">No patient appointments found in database.</td>
+                    <td colspan="6" class="text-center py-5">No patient appointments found in database.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -179,7 +178,7 @@
                     <!-- Dynamically populated suggestions -->
                 </div>
                 <small class="text-muted" style="font-size: 0.75rem; margin-top: 2px; display: block;">
-                    💡 Type to auto-search previous patients or create a brand new patient.
+                    💡 Type to auto-search previous appointments or create a brand new patient.
                 </small>
             </div>
 
@@ -254,15 +253,9 @@
                 <input type="number" id="lead_estimated_value" name="estimated_value" step="0.01" class="form-control" placeholder="e.g. 15000">
             </div>
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-3">
                 <label for="lead_notes">Consultation Notes / Patient Intake</label>
                 <textarea id="lead_notes" name="notes" rows="2" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
-            </div>
-
-            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.6rem 0.85rem; border-radius: 4px; margin-bottom: 1rem;">
-                <small style="display: block; color: var(--color-charcoal); font-size: 0.78rem;">
-                    ✉️ <strong>Dual Email Sending:</strong> On booking/saving, confirmation emails are automatically dispatched to the patient and clinic admin.
-                </small>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-border);">
@@ -454,7 +447,7 @@
     let currentViewingLead = null;
     let autocompleteTimeout = null;
 
-    // --- Realtime Patient Name Autocomplete ---
+    // --- Realtime Patient Name Autocomplete (Only Appointment records) ---
     function handlePatientAutocomplete(query) {
         clearTimeout(autocompleteTimeout);
         const dropdown = document.getElementById('patientSuggestionsDropdown');
@@ -650,7 +643,7 @@
             const data = await res.json();
             if (res.ok && data.success) {
                 closeLeadModal();
-                showToast(data.message || 'Appointment saved and emails dispatched successfully!', 'success');
+                showToast(data.message || 'Appointment saved successfully!', 'success');
                 setTimeout(() => location.reload(), 700);
             } else {
                 showToast(data.message || 'Error saving appointment', 'error');

@@ -224,15 +224,9 @@
                 </div>
             </div>
 
-            <div class="form-group mb-2">
+            <div class="form-group mb-3">
                 <label for="convert_notes">Appointment Notes / Patient Concerns</label>
                 <textarea id="convert_notes" rows="2" class="form-control" placeholder="Skin type, primary concerns, doctor instructions..."></textarea>
-            </div>
-
-            <div style="background: rgba(197, 160, 89, 0.08); border-left: 3px solid var(--color-gold); padding: 0.6rem 0.85rem; border-radius: 4px; margin-bottom: 1rem;">
-                <small style="display: block; color: var(--color-charcoal); font-size: 0.78rem;">
-                    ✉️ <strong>Dual Email Notification:</strong> Booking confirmation email will be sent to the patient & clinic admin.
-                </small>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--color-border);">

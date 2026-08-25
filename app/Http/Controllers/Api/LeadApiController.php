@@ -49,33 +49,24 @@ class LeadApiController extends Controller
             return response()->json(['success' => true, 'data' => []]);
         }
 
-        $leadPatients = Lead::where(function ($query) use ($q) {
+        // Only query from Appointments (Lead model)
+        $patients = Lead::where(function ($query) use ($q) {
             $query->where('name', 'like', "%{$q}%")
                   ->orWhere('email', 'like', "%{$q}%")
                   ->orWhere('phone', 'like', "%{$q}%");
         })
         ->select('name', 'email', 'phone', 'service_name', 'created_at')
         ->latest()
-        ->limit(10)
-        ->get();
-
-        $inquiryPatients = \App\Models\Inquiry::where(function ($query) use ($q) {
-            $query->where('name', 'like', "%{$q}%")
-                  ->orWhere('email', 'like', "%{$q}%")
-                  ->orWhere('phone', 'like', "%{$q}%");
-        })
-        ->select('name', 'email', 'phone', 'service_name', 'created_at')
-        ->latest()
-        ->limit(10)
-        ->get();
-
-        $merged = $leadPatients->concat($inquiryPatients)->unique(function ($item) {
+        ->get()
+        ->unique(function ($item) {
             return strtolower(trim($item->name) . '_' . trim($item->phone));
-        })->values()->take(8);
+        })
+        ->values()
+        ->take(8);
 
         return response()->json([
             'success' => true,
-            'data' => $merged,
+            'data' => $patients,
         ]);
     }
 
