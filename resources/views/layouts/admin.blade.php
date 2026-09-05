@@ -213,7 +213,7 @@
                         @php
                             $adminUser = auth()->user() ?? \App\Models\User::first();
                             $adminName = $adminUser?->name ?? 'Administrator';
-                            $adminEmail = $adminUser?->email ?? 'Super Admin';
+                            $adminRole = $adminUser?->role ?? 'Super Admin';
                             $userAvatar = $adminUser?->avatar_url ?? null;
                             $userAvatarSrc = !empty($userAvatar) ? (str_starts_with($userAvatar, 'http') || str_starts_with($userAvatar, '/') ? $userAvatar : asset('storage/' . $userAvatar)) : null;
                             $nameParts = preg_split('/\s+/', trim($adminName));
@@ -228,7 +228,7 @@
                         @endif
                         <div class="user-text">
                             <span class="user-name">{{ $adminName }}</span>
-                            <span class="user-role">{{ $adminEmail }}</span>
+                            <span class="user-role">{{ $adminRole }}</span>
                         </div>
                     </a>
                     <form action="{{ route('admin.logout') }}" method="POST" style="display: inline;">

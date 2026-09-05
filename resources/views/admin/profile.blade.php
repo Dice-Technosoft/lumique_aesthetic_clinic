@@ -173,7 +173,7 @@
                     const topUserEmail = document.querySelector('.user-role');
                     const topAvatarCircle = document.querySelector('.admin-user-pill .user-avatar-circle');
                     if (topUserName) topUserName.innerText = data.data.name;
-                    if (topUserEmail) topUserEmail.innerText = data.data.email;
+                    if (topUserEmail) topUserEmail.innerText = data.data.role || 'Super Admin';
 
                     const nameParts = data.data.name.trim().split(/\s+/);
                     const initials = nameParts.length >= 2 
