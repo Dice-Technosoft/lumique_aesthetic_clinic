@@ -90,7 +90,7 @@ Route::prefix('v1')->group(function () {
         // Results Before & After Gallery
         Route::get('/gallery', [GalleryApiController::class, 'index']);
         Route::post('/gallery', [GalleryApiController::class, 'store']);
-        Route::put('/gallery/{item}', [GalleryApiController::class, 'update']);
+        Route::match(['put', 'post'], '/gallery/{item}', [GalleryApiController::class, 'update']);
         Route::delete('/gallery/{item}', [GalleryApiController::class, 'destroy']);
 
         // Blog & Doctor Articles

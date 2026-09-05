@@ -211,17 +211,24 @@
                     </a>
                     <a href="{{ route('admin.profile') }}" class="admin-user-pill" style="text-decoration: none; cursor: pointer;" title="Edit Administrator Profile">
                         @php
-                            $userAvatar = auth()->user()->avatar_url ?? null;
+                            $adminUser = auth()->user() ?? \App\Models\User::first();
+                            $adminName = $adminUser?->name ?? 'Administrator';
+                            $adminEmail = $adminUser?->email ?? 'Super Admin';
+                            $userAvatar = $adminUser?->avatar_url ?? null;
                             $userAvatarSrc = !empty($userAvatar) ? (str_starts_with($userAvatar, 'http') || str_starts_with($userAvatar, '/') ? $userAvatar : asset('storage/' . $userAvatar)) : null;
+                            $nameParts = preg_split('/\s+/', trim($adminName));
+                            $adminInitials = count($nameParts) >= 2
+                                ? strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1))
+                                : strtoupper(substr($adminName, 0, 2));
                         @endphp
                         @if($userAvatarSrc)
-                            <img src="{{ $userAvatarSrc }}" alt="{{ auth()->user()->name }}" class="user-avatar-circle" style="object-fit: cover; border: 1.5px solid var(--color-gold-bright);">
+                            <img src="{{ $userAvatarSrc }}" alt="{{ $adminName }}" class="user-avatar-circle" style="object-fit: cover; border: 1.5px solid var(--color-gold-bright);">
                         @else
-                            <div class="user-avatar-circle">{{ strtoupper(substr(auth()->user()->name ?? 'AV', 0, 2)) }}</div>
+                            <div class="user-avatar-circle">{{ $adminInitials }}</div>
                         @endif
                         <div class="user-text">
-                            <span class="user-name">{{ auth()->user()->name ?? 'Dr. Alisha Vance' }}</span>
-                            <span class="user-role">{{ auth()->user()->email ?? 'Super Admin' }}</span>
+                            <span class="user-name">{{ $adminName }}</span>
+                            <span class="user-role">{{ $adminEmail }}</span>
                         </div>
                     </a>
                     <form action="{{ route('admin.logout') }}" method="POST" style="display: inline;">

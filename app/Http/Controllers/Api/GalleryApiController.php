@@ -61,8 +61,10 @@ class GalleryApiController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, GalleryItem $gallery): JsonResponse
+    public function update(Request $request, $item): JsonResponse
     {
+        $galleryItem = $item instanceof GalleryItem ? $item : GalleryItem::findOrFail($item);
+
         $data = $request->validate([
             'title' => 'required|string|max:200',
             'category' => 'required|string',
@@ -85,18 +87,20 @@ class GalleryApiController extends Controller
             $data['image_after'] = '/storage/' . $path;
         }
 
-        $gallery->update($data);
+        $galleryItem->update($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Gallery item updated successfully',
-            'data' => $gallery,
+            'data' => $galleryItem->fresh(),
         ]);
     }
 
-    public function destroy(GalleryItem $gallery): JsonResponse
+    public function destroy($item): JsonResponse
     {
-        $gallery->delete();
+        $galleryItem = $item instanceof GalleryItem ? $item : GalleryItem::findOrFail($item);
+        $galleryItem->delete();
+
         return response()->json([
             'success' => true,
             'message' => 'Gallery item deleted successfully',

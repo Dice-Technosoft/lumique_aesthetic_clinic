@@ -499,8 +499,8 @@ class ClinicDatabaseSeeder extends Seeder
             [
                 'gallery_id' => $gallery->id,
                 'title' => 'Acne Scar Revision & Skin Smoothing',
-                'image_before' => 'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=600',
-                'image_after' => 'https://images.pexels.com/photos/7789640/pexels-photo-7789640.jpeg?auto=compress&cs=tinysrgb&w=600',
+                'image_before' => '/storage/gallery/acne_scar_before.jpg',
+                'image_after' => '/storage/gallery/acne_scar_after.jpg',
                 'category' => 'skin',
                 'treatment_name' => 'HydraFacial MD + Carbon Laser',
                 'sort_order' => 1,
@@ -508,8 +508,8 @@ class ClinicDatabaseSeeder extends Seeder
             [
                 'gallery_id' => $gallery->id,
                 'title' => 'Crown Density Regrowth (After 4 GFC Sessions)',
-                'image_before' => 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=600',
-                'image_after' => 'https://images.pexels.com/photos/11024139/pexels-photo-11024139.jpeg?auto=compress&cs=tinysrgb&w=600',
+                'image_before' => '/storage/gallery/hair_growth_before.jpg',
+                'image_after' => '/storage/gallery/hair_growth_after.jpg',
                 'category' => 'hair',
                 'treatment_name' => 'Advanced GFC Hair Therapy',
                 'sort_order' => 2,
@@ -517,8 +517,8 @@ class ClinicDatabaseSeeder extends Seeder
             [
                 'gallery_id' => $gallery->id,
                 'title' => 'Dark Tribal Tattoo Clearance (After 4 Sessions)',
-                'image_before' => 'https://images.pexels.com/photos/7446683/pexels-photo-7446683.jpeg?auto=compress&cs=tinysrgb&w=600',
-                'image_after' => 'https://images.pexels.com/photos/3985332/pexels-photo-3985332.jpeg?auto=compress&cs=tinysrgb&w=600',
+                'image_before' => '/storage/gallery/tattoo_clearance_before.jpg',
+                'image_after' => '/storage/gallery/tattoo_clearance_after.jpg',
                 'category' => 'tattoo-removal',
                 'treatment_name' => 'Picosecond Laser Removal',
                 'sort_order' => 3,
@@ -526,8 +526,8 @@ class ClinicDatabaseSeeder extends Seeder
             [
                 'gallery_id' => $gallery->id,
                 'title' => 'Subtle Tear Trough & Cheek Contour Refinement',
-                'image_before' => 'https://images.pexels.com/photos/14438367/pexels-photo-14438367.jpeg?auto=compress&cs=tinysrgb&w=600',
-                'image_after' => 'https://images.pexels.com/photos/32160039/pexels-photo-32160039.jpeg?auto=compress&cs=tinysrgb&w=600',
+                'image_before' => '/storage/gallery/teartrough_before.jpg',
+                'image_after' => '/storage/gallery/teartrough_after.jpg',
                 'category' => 'aesthetic-treatments',
                 'treatment_name' => 'Dermal Filler Sculpting',
                 'sort_order' => 4,

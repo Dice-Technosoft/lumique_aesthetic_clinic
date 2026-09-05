@@ -429,8 +429,10 @@ class AdminApiController extends Controller
         ], 201);
     }
 
-    public function updateGalleryItem(Request $request, GalleryItem $gallery): JsonResponse
+    public function updateGalleryItem(Request $request, $item): JsonResponse
     {
+        $gallery = $item instanceof GalleryItem ? $item : GalleryItem::findOrFail($item);
+
         $data = $request->validate([
             'title' => 'required|string|max:200',
             'category' => 'required|string',
@@ -458,12 +460,13 @@ class AdminApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Gallery item updated successfully',
-            'data' => $gallery,
+            'data' => $gallery->fresh(),
         ]);
     }
 
-    public function deleteGalleryItem(GalleryItem $gallery): JsonResponse
+    public function deleteGalleryItem($item): JsonResponse
     {
+        $gallery = $item instanceof GalleryItem ? $item : GalleryItem::findOrFail($item);
         $gallery->delete();
         return response()->json([
             'success' => true,

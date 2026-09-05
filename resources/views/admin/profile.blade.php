@@ -16,13 +16,18 @@
             @php
                 $currentAvatar = $user->avatar_url ?? null;
                 $currentAvatarSrc = !empty($currentAvatar) ? (str_starts_with($currentAvatar, 'http') || str_starts_with($currentAvatar, '/') ? $currentAvatar : asset('storage/' . $currentAvatar)) : null;
+                $pName = $user->name ?? 'Admin';
+                $pParts = preg_split('/\s+/', trim($pName));
+                $userInitials = count($pParts) >= 2
+                    ? strtoupper(substr($pParts[0], 0, 1) . substr(end($pParts), 0, 1))
+                    : strtoupper(substr($pName, 0, 2));
             @endphp
             <div id="headerAvatarWrap">
                 @if($currentAvatarSrc)
                     <img src="{{ $currentAvatarSrc }}" alt="{{ $user->name }}" class="user-avatar-circle" id="headerAvatarImg" style="width: 48px; height: 48px; object-fit: cover; border: 2px solid var(--color-gold-bright);">
                 @else
                     <div class="user-avatar-circle" id="headerAvatarInitials" style="width: 48px; height: 48px; font-size: 1.15rem;">
-                        {{ strtoupper(substr($user->name ?? 'AV', 0, 2)) }}
+                        {{ $userInitials }}
                     </div>
                 @endif
             </div>
@@ -56,7 +61,7 @@
                             <img src="{{ $currentAvatarSrc }}" alt="Profile Photo" id="avatarPreviewImg" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-gold-bright); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                         @else
                             <div id="avatarPreviewInitials" class="user-avatar-circle" style="width: 80px; height: 80px; font-size: 1.85rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                                {{ strtoupper(substr($user->name ?? 'AV', 0, 2)) }}
+                                {{ $userInitials }}
                             </div>
                             <img src="" alt="Profile Photo" id="avatarPreviewImg" style="display: none; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-gold-bright); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                         @endif
@@ -170,6 +175,16 @@
                     if (topUserName) topUserName.innerText = data.data.name;
                     if (topUserEmail) topUserEmail.innerText = data.data.email;
 
+                    const nameParts = data.data.name.trim().split(/\s+/);
+                    const initials = nameParts.length >= 2 
+                        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                        : data.data.name.substring(0, 2).toUpperCase();
+
+                    const headerInitials = document.getElementById('headerAvatarInitials');
+                    if (headerInitials) headerInitials.innerText = initials;
+                    const previewInitials = document.getElementById('avatarPreviewInitials');
+                    if (previewInitials) previewInitials.innerText = initials;
+
                     if (data.data.avatar_url) {
                         const avatarUrl = data.data.avatar_url.startsWith('http') || data.data.avatar_url.startsWith('/') ? data.data.avatar_url : '/storage/' + data.data.avatar_url;
                         if (topAvatarCircle) {
@@ -180,7 +195,7 @@
                             }
                         }
                     } else if (topAvatarCircle && topAvatarCircle.tagName !== 'IMG') {
-                        topAvatarCircle.innerText = data.data.name.substring(0, 2).toUpperCase();
+                        topAvatarCircle.innerText = initials;
                     }
                 }
             } else {

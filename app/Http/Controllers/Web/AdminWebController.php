@@ -270,6 +270,9 @@ class AdminWebController extends Controller
     public function profile(): View
     {
         $user = Auth::user() ?? User::first();
+        if (!Auth::check() && $user) {
+            Auth::login($user);
+        }
         return view('admin.profile', compact('user'));
     }
 
@@ -305,11 +308,13 @@ class AdminWebController extends Controller
         $user->phone = $data['phone'] ?? $user->phone;
         $user->save();
 
+        Auth::login($user);
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Administrator profile updated successfully in database.',
-                'data' => $user,
+                'data' => $user->fresh(),
             ]);
         }
 
