@@ -4,6 +4,16 @@
 @section('breadcrumb_current', 'Executive Dashboard')
 @section('page_title', 'Clinic Executive Dashboard & Performance Analytics')
 
+@section('styles')
+<style>
+@media (max-width: 1024px) {
+    .dashboard-chart-row-col6 {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+@endsection
+
 @section('content')
 <!-- Header Quick Action & Telemetry Status -->
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
@@ -96,48 +106,9 @@
     </div>
 </div>
 
-<!-- Secondary Clinic Operations & Content Telemetry Strip -->
-<div class="clinic-telemetry-bar">
-    <div class="telemetry-mini-card">
-        <span class="mini-icon">💉</span>
-        <div class="mini-info">
-            <span class="mini-val">{{ $summary['published_services'] ?? 0 }}</span>
-            <span class="mini-lbl">Active Treatments</span>
-        </div>
-    </div>
-    <div class="telemetry-mini-card">
-        <span class="mini-icon">📂</span>
-        <div class="mini-info">
-            <span class="mini-val">{{ $summary['active_categories'] ?? 0 }}</span>
-            <span class="mini-lbl">Clinical Categories</span>
-        </div>
-    </div>
-    <div class="telemetry-mini-card">
-        <span class="mini-icon">🩺</span>
-        <div class="mini-info">
-            <span class="mini-val">{{ $summary['active_doctors'] ?? 0 }}</span>
-            <span class="mini-lbl">Medical Specialists</span>
-        </div>
-    </div>
-    <div class="telemetry-mini-card">
-        <span class="mini-icon">⭐</span>
-        <div class="mini-info">
-            <span class="mini-val">{{ $summary['approved_testimonials'] ?? 0 }}</span>
-            <span class="mini-lbl">Patient Testimonials</span>
-        </div>
-    </div>
-    <div class="telemetry-mini-card">
-        <span class="mini-icon">📰</span>
-        <div class="mini-info">
-            <span class="mini-val">{{ $summary['published_posts'] ?? 0 }}</span>
-            <span class="mini-lbl">Blog Articles</span>
-        </div>
-    </div>
-</div>
-
-<!-- Interactive Analytics Charts Grid - Row 1 -->
-<div class="dashboard-chart-row-1">
-    <!-- Chart 1: Monthly Inquiry & Appointment Growth Trends -->
+<!-- Interactive Analytics Charts Grid - Row 1 (Both Col-6) -->
+<div class="dashboard-chart-row-col6" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+    <!-- Chart 1: Monthly Inquiry & Appointment Growth Trends (Col-6) -->
     <div class="admin-panel-card" style="margin-bottom: 0;">
         <div class="panel-card-header">
             <div>
@@ -146,12 +117,12 @@
             </div>
             <span class="badge-gold">Monthly Telemetry</span>
         </div>
-        <div style="position: relative; height: 290px; width: 100%;">
+        <div style="position: relative; height: 300px; width: 100%;">
             <canvas id="monthlyTrendsChart"></canvas>
         </div>
     </div>
 
-    <!-- Chart 2: Lead Acquisition Sources -->
+    <!-- Chart 2: Lead Acquisition Sources (Col-6) -->
     <div class="admin-panel-card" style="margin-bottom: 0;">
         <div class="panel-card-header">
             <div>
@@ -159,14 +130,14 @@
                 <small class="text-muted">Breakdown of inquiry intake channels</small>
             </div>
         </div>
-        <div style="position: relative; height: 290px; width: 100%; display: flex; align-items: center; justify-content: center;">
+        <div style="position: relative; height: 300px; width: 100%; display: flex; align-items: center; justify-content: center;">
             <canvas id="leadSourceChart"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Interactive Analytics Charts Grid - Row 2 -->
-<div class="dashboard-chart-row-2">
+<!-- Interactive Analytics Charts Grid - Row 2 (Both Col-6) -->
+<div class="dashboard-chart-row-col6" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
     <!-- Chart 3: CRM Conversion Pipeline Funnel -->
     <div class="admin-panel-card" style="margin-bottom: 0;">
         <div class="panel-card-header">
