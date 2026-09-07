@@ -15,24 +15,6 @@
 @endsection
 
 @section('content')
-<!-- Header Quick Action & Telemetry Status -->
-<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
-    <div>
-        <p style="font-size: 0.85rem; color: var(--color-charcoal-muted); margin: 0;">
-            Live telemetry synchronized with clinic patient intake, appointment requests, and clinical services.
-        </p>
-    </div>
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <span class="badge-gold" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem;">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background: #2E7D32; display: inline-block; box-shadow: 0 0 0 2px rgba(46,125,50,0.2);"></span>
-            <span>Live Database Telemetry</span>
-        </span>
-        <button type="button" onclick="window.location.reload()" class="btn btn-outline-gold btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;" title="Refresh Data">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-            <span>Sync</span>
-        </button>
-    </div>
-</div>
 
 <!-- Primary KPI Statistics Cards -->
 <div class="dashboard-stats-grid">
