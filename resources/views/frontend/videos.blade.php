@@ -12,7 +12,7 @@
       <span class="section-label">Video Library</span>
       <h1 class="heading-1 text-balance" style="margin-bottom: 1.5rem;">Procedure Demonstrations & Doctor Insights</h1>
       <p class="body-text">
-        Watch Dr. Alisha Vance explain clinical treatment mechanics, patient transformations, and skincare science.
+        Watch {{ $doctor->name ?? (\App\Models\TeamMember::where('is_lead', true)->first()->name ?? 'our medical specialists') }} explain clinical treatment mechanics, patient transformations, and skincare science.
       </p>
     </div>
   </div>

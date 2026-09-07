@@ -5,6 +5,20 @@
 @section('header_class', '')
 
 @section('content')
+@php
+    // Dynamically retrieve reviewing doctor/specialist from database
+    $reviewer = $doctor ?? \App\Models\TeamMember::where('is_lead', true)->first() ?? \App\Models\TeamMember::active()->first() ?? \App\Models\TeamMember::first();
+    
+    $reviewerName = $reviewer->name ?? ($post->author->name ?? 'Lead Medical Specialist');
+    $reviewerQual = (!empty($reviewer->qualification) && !str_contains($reviewerName, $reviewer->qualification)) ? ', ' . $reviewer->qualification : '';
+    $reviewerDisplayName = $reviewerName . $reviewerQual;
+    
+    $reviewerPhoto = !empty($reviewer->photo) ? $reviewer->photo : (!empty($post->author->avatar_url) ? $post->author->avatar_url : '/images/logo.jpeg');
+    
+    $reviewerBio = !empty($reviewer->short_bio)
+        ? $reviewer->short_bio
+        : ((!empty($reviewer->designation) ? $reviewer->designation : 'Medical Director & Lead Dermatologist') . ' at ' . ($settings['site_name'] ?? 'Lumique Aesthetic Clinic') . ', Bandra West, Mumbai.');
+@endphp
 <!-- Page Hero Banner -->
 <section class="page-hero">
   <div class="floating-bg-container" data-particles="8"></div>
@@ -23,7 +37,7 @@
         <span>&bull;</span>
         <span>{{ $post->read_time_minutes ?? 5 }} min read</span>
         <span>&bull;</span>
-        <span>By {{ $post->author->name ?? 'Dr. Alisha Vance' }}</span>
+        <span>By {{ $reviewerName }}</span>
       </div>
     </div>
   </div>
@@ -44,12 +58,19 @@
         {!! $post->content !!}
       </div>
 
-      <!-- Author Bio Box -->
+      <!-- Author / Clinical Reviewer Bio Box -->
       <div class="luxury-card" style="margin-top: 3.5rem; padding: 2rem; display: flex; gap: 1.5rem; align-items: center; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-ivory);">
-        <img src="https://images.pexels.com/photos/32160039/pexels-photo-32160039.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Author" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-gold); flex-shrink: 0;">
+        <div style="width: 76px; height: 76px; border-radius: 50%; overflow: hidden; border: 2px solid var(--color-gold); flex-shrink: 0; background: #fff; display: flex; align-items: center; justify-content: center;">
+          <img src="{{ $reviewerPhoto }}" alt="{{ $reviewerName }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='/images/logo.jpeg';">
+        </div>
         <div>
-          <strong style="font-family: var(--font-serif); font-size: 1.15rem; display: block; color: var(--color-charcoal);">Clinically Reviewed by Dr. Alisha Vance, MD</strong>
-          <p class="body-text" style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--color-charcoal-muted); line-height: 1.5;">Medical Director & Lead Dermatologist at Lumique Aesthetic Clinic, Bandra West, Mumbai.</p>
+          <strong style="font-family: var(--font-serif); font-size: 1.15rem; display: block; color: var(--color-charcoal);">Clinically Reviewed by {{ $reviewerDisplayName }}</strong>
+          <p class="body-text" style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--color-charcoal-muted); line-height: 1.5;">{{ $reviewerBio }}</p>
+          @if(!empty($reviewer->experience_years) && $reviewer->experience_years > 0)
+            <span style="display: inline-block; margin-top: 0.35rem; font-size: 0.75rem; color: var(--color-gold-dark, #8B6B15); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+              ★ {{ $reviewer->experience_years }}+ Years Clinical Experience
+            </span>
+          @endif
         </div>
       </div>
     </div>

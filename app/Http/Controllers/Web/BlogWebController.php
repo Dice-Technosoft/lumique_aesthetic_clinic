@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use App\Models\TeamMember;
 use App\Services\SettingsService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -47,9 +48,12 @@ class BlogWebController extends Controller
         $post = BlogPost::published()->where('slug', $slug)->with(['category', 'tags', 'author'])->firstOrFail();
         $post->increment('view_count');
 
+        // Dynamically resolve the clinical doctor / specialist from admin catalog
+        $doctor = TeamMember::where('is_lead', true)->first() ?? TeamMember::active()->orderBy('sort_order', 'asc')->first() ?? TeamMember::first();
+
         $recentPosts = BlogPost::published()->where('id', '!=', $post->id)->latest('published_at')->limit(3)->get();
         $categories = BlogCategory::where('status', true)->get();
 
-        return view('frontend.blog_detail', compact('settings', 'post', 'recentPosts', 'categories'));
+        return view('frontend.blog_detail', compact('settings', 'post', 'recentPosts', 'categories', 'doctor'));
     }
 }
