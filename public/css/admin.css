@@ -476,8 +476,14 @@ body.admin-body {
 
 /* --- Content Body --- */
 .admin-content-body {
-  padding: 2rem;
+  padding: 1.25rem 1.5rem 1.5rem;
   flex: 1;
+}
+
+@media (max-width: 768px) {
+  .admin-content-body {
+    padding: 1rem 0.75rem 1rem;
+  }
 }
 
 /* --- Stats Grid --- */
@@ -571,9 +577,35 @@ body.admin-body {
   background-color: #ffffff;
   border-radius: 8px;
   border: 1px solid var(--color-border);
-  padding: 1.75rem;
+  padding: 1.25rem 1.5rem;
   box-shadow: var(--shadow-subtle);
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .admin-panel-card,
+  .admin-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* About CMS Page Grid */
+.about-cms-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .about-cms-grid {
+    grid-template-columns: 1fr;
+  }
+  .about-cms-grid > div:first-child {
+    position: static !important;
+  }
 }
 
 .panel-card-header {

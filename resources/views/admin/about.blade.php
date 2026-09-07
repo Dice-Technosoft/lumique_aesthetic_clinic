@@ -22,49 +22,49 @@
     </div>
 
     <form id="aboutCmsForm" onsubmit="handleAboutCmsSubmit(event)" enctype="multipart/form-data">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <div class="about-cms-grid" style="display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem; align-items: start; margin-bottom: 1.25rem;">
             
             <!-- LEFT COLUMN: The 2 Clinic Images with Live Visual Preview -->
-            <div style="background: var(--color-ivory); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--color-border);">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+            <div style="background: var(--color-ivory); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--color-border); position: sticky; top: 85px;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
                     <span style="font-size: 1.25rem;">🖼️</span>
                     <h4 style="font-size: 1.05rem; margin: 0; color: var(--color-charcoal);">Clinic Story Images (2 Assets)</h4>
                 </div>
-                <p style="font-size: 0.8rem; color: var(--color-charcoal-muted); margin-bottom: 1.25rem;">
+                <p style="font-size: 0.8rem; color: var(--color-charcoal-muted); margin-bottom: 1rem;">
                     Upload high-resolution clinical ambience and doctor consultation photos. The live preview updates instantly.
                 </p>
 
                 <!-- Primary Image: Clinic Ambience (4:5 Portrait) -->
-                <div class="form-group mb-4">
-                    <label for="file_about_image_1" style="font-weight: 600; font-size: 0.875rem; color: var(--color-charcoal); display: block; margin-bottom: 0.35rem;">
+                <div class="form-group mb-3">
+                    <label for="file_about_image_1" style="font-weight: 600; font-size: 0.85rem; color: var(--color-charcoal); display: block; margin-bottom: 0.35rem;">
                         1. Clinic Ambience Photo (Primary 4:5 Image) *
                     </label>
-                    <input type="file" id="file_about_image_1" name="file_about_image_1" accept="image/*" class="form-control form-control-sm" onchange="previewAboutImage(this, 'live_about_img_1', 'setting_about_image_1')" style="margin-bottom: 0.5rem;">
+                    <input type="file" id="file_about_image_1" name="file_about_image_1" accept="image/*" class="form-control form-control-sm" onchange="previewAboutImage(this, 'live_about_img_1', 'setting_about_image_1')" style="margin-bottom: 0.4rem;">
                     <input type="text" id="setting_about_image_1" name="about_image_1" value="{{ $settings['about_image_1'] ?? '' }}" class="form-control form-control-sm" placeholder="Image URL or uploaded path" oninput="updateLiveImg('live_about_img_1', this.value)">
                 </div>
 
                 <!-- Secondary Image: Doctor Consultation (Floating) -->
-                <div class="form-group mb-4">
-                    <label for="file_about_image_2" style="font-weight: 600; font-size: 0.875rem; color: var(--color-charcoal); display: block; margin-bottom: 0.35rem;">
+                <div class="form-group mb-3">
+                    <label for="file_about_image_2" style="font-weight: 600; font-size: 0.85rem; color: var(--color-charcoal); display: block; margin-bottom: 0.35rem;">
                         2. Doctor Consultation Photo (Secondary Floating Image) *
                     </label>
-                    <input type="file" id="file_about_image_2" name="file_about_image_2" accept="image/*" class="form-control form-control-sm" onchange="previewAboutImage(this, 'live_about_img_2', 'setting_about_image_2')" style="margin-bottom: 0.5rem;">
+                    <input type="file" id="file_about_image_2" name="file_about_image_2" accept="image/*" class="form-control form-control-sm" onchange="previewAboutImage(this, 'live_about_img_2', 'setting_about_image_2')" style="margin-bottom: 0.4rem;">
                     <input type="text" id="setting_about_image_2" name="about_image_2" value="{{ $settings['about_image_2'] ?? '' }}" class="form-control form-control-sm" placeholder="Image URL or uploaded path" oninput="updateLiveImg('live_about_img_2', this.value)">
                 </div>
 
                 <!-- Live Visual Arrangement Preview -->
-                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.08);">
+                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.08);">
                     <small style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-crimson); font-size: 0.72rem; display: block; margin-bottom: 0.75rem;">
                         LIVE LAYOUT PREVIEW (AS SEEN ON WEBSITE)
                     </small>
-                    <div style="position: relative; width: 100%; max-width: 320px; margin: 0 auto; padding-bottom: 2rem;">
-                        <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 2px solid #fff;">
+                    <div style="position: relative; width: 100%; padding-right: 1.25rem; padding-bottom: 1.5rem;">
+                        <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.12); border: 2px solid #fff;">
                             <img id="live_about_img_1" 
                                  src="{{ $settings['about_image_1'] ?? 'https://images.pexels.com/photos/11024139/pexels-photo-11024139.jpeg?auto=compress&cs=tinysrgb&w=800' }}" 
                                  alt="Primary Ambience" 
                                  style="width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block;">
                         </div>
-                        <div style="position: absolute; bottom: 0; right: -15px; width: 130px; height: 130px; border: 4px solid #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 12px 28px rgba(0,0,0,0.22); background: #000;">
+                        <div style="position: absolute; bottom: 0; right: 0; width: 125px; height: 125px; border: 3px solid #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 24px rgba(0,0,0,0.2); background: #000;">
                             <img id="live_about_img_2" 
                                  src="{{ $settings['about_image_2'] ?? 'https://images.pexels.com/photos/7108264/pexels-photo-7108264.jpeg?auto=compress&cs=tinysrgb&w=400' }}" 
                                  alt="Secondary Consultation" 
