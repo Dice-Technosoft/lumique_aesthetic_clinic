@@ -65,9 +65,81 @@
         <!-- Medical Overview -->
         <div style="margin-bottom: 3rem;">
           <span class="section-label">Medical Overview</span>
-          <h2 class="heading-2" style="margin-bottom: 1rem;">Procedure Description & Protocol</h2>
-          <p class="body-text" style="white-space: pre-line; line-height: 1.8;">{{ $service->description }}</p>
+          <h2 class="heading-2" style="margin-bottom: 1.25rem;">Procedure Description & Protocol</h2>
+          <div class="body-text service-procedure-description" style="line-height: 1.8;">
+            @if(!empty($service->description))
+              @if(!preg_match('/<[a-z][\s\S]*>/i', $service->description))
+                {!! nl2br(e($service->description)) !!}
+              @else
+                {!! $service->description !!}
+              @endif
+            @else
+              <p style="color: var(--color-charcoal-muted); font-style: italic;">Detailed procedure protocol will be updated shortly.</p>
+            @endif
+          </div>
         </div>
+
+<style>
+.service-procedure-description {
+  color: var(--color-charcoal);
+  font-size: 1rem;
+}
+.service-procedure-description p {
+  margin-bottom: 1.15rem;
+  line-height: 1.85;
+}
+.service-procedure-description strong,
+.service-procedure-description b {
+  font-weight: 700;
+  color: #111827;
+}
+.service-procedure-description ul {
+  list-style-type: disc !important;
+  margin: 1rem 0 1.25rem 1.5rem !important;
+  padding-left: 0.5rem !important;
+}
+.service-procedure-description ol {
+  list-style-type: decimal !important;
+  margin: 1rem 0 1.25rem 1.5rem !important;
+  padding-left: 0.5rem !important;
+}
+.service-procedure-description li {
+  margin-bottom: 0.45rem;
+  line-height: 1.75;
+}
+.service-procedure-description h2 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  margin: 1.75rem 0 0.75rem;
+  color: var(--color-charcoal);
+}
+.service-procedure-description h3 {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  margin: 1.5rem 0 0.65rem;
+  color: var(--color-charcoal);
+}
+.service-procedure-description h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--color-charcoal);
+}
+.service-procedure-description blockquote {
+  border-left: 4px solid var(--color-crimson, #8B1538);
+  background: #fdf8f9;
+  padding: 0.75rem 1.25rem;
+  margin: 1.25rem 0;
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+  color: #4b5563;
+}
+.service-procedure-description a {
+  color: var(--color-crimson, #8B1538);
+  text-decoration: underline;
+  font-weight: 500;
+}
+</style>
 
         <!-- Treatment Sub-Images / Clinical Procedure Gallery -->
         @if(!empty($service->gallery_images) && count($service->gallery_images) > 0)

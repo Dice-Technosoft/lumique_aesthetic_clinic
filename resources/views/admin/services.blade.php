@@ -226,9 +226,94 @@
                 <textarea id="svc_short_desc" name="short_description" rows="2" required class="form-control" placeholder="Brief summary for card display on frontend..."></textarea>
             </div>
 
+            <!-- RICH TEXT WYSIWYG MEDICAL DESCRIPTION -->
             <div class="form-group mb-3">
-                <label for="svc_desc">Full Medical Description</label>
-                <textarea id="svc_desc" name="description" rows="3" class="form-control" placeholder="Detailed procedure mechanism, clinical benefits, aftercare..."></textarea>
+                <label style="font-weight: 600; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <span>Full Medical Description (Rich Text)</span>
+                    <button type="button" class="btn btn-outline-gold btn-xs" onclick="toggleServiceHtmlSourceMode()" id="svcHtmlToggleBtn" style="font-size: 0.72rem; padding: 2px 8px;">
+                        &lt;/&gt; Source View
+                    </button>
+                </label>
+
+                <div class="rich-editor-wrapper" style="border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden; background: #fff;">
+                    <!-- Formatting Toolbar -->
+                    <div class="rich-editor-toolbar" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; align-items: center;">
+                        
+                        <!-- Heading / Block Dropdown -->
+                        <select onchange="execSvcCmd('formatBlock', this.value); this.value='';" style="height: 28px; font-size: 0.78rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 3px; background: #fff;" title="Heading / Block style">
+                            <option value="">Heading / Paragraph</option>
+                            <option value="<h2>">Heading 2</option>
+                            <option value="<h3>">Heading 3</option>
+                            <option value="<h4>">Heading 4</option>
+                            <option value="<p>">Normal Paragraph</option>
+                            <option value="<blockquote>">Quote Block</option>
+                        </select>
+
+                        <!-- Sizing Option (Font Size) -->
+                        <select onchange="execSvcFontSize(this.value); this.value='';" style="height: 28px; font-size: 0.78rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 3px; background: #fff;" title="Font Size">
+                            <option value="">Font Size</option>
+                            <option value="1">Small (12px)</option>
+                            <option value="3">Normal (15px)</option>
+                            <option value="4">Medium (18px)</option>
+                            <option value="5">Large (22px)</option>
+                            <option value="6">Extra Large (28px)</option>
+                        </select>
+
+                        <div style="width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px;"></div>
+
+                        <!-- Basic Formatting Buttons -->
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('bold')" title="Bold (Ctrl+B)" style="font-weight: 700; width: 28px; height: 28px;">B</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('italic')" title="Italic (Ctrl+I)" style="font-style: italic; width: 28px; height: 28px;">I</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('underline')" title="Underline (Ctrl+U)" style="text-decoration: underline; width: 28px; height: 28px;">U</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('strikeThrough')" title="Strikethrough" style="text-decoration: line-through; width: 28px; height: 28px;">S</button>
+
+                        <div style="width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px;"></div>
+
+                        <!-- Text Color Picker -->
+                        <div style="position: relative; display: inline-flex; align-items: center;" title="Text Color">
+                            <label style="margin: 0; cursor: pointer; display: flex; align-items: center; gap: 2px; font-size: 0.78rem; font-weight: 700; height: 28px; padding: 0 6px; border: 1px solid #cbd5e1; border-radius: 3px; background: #fff;">
+                                <span style="border-bottom: 3px solid #8B1538;">A</span>
+                                <input type="color" onchange="execSvcCmd('foreColor', this.value)" style="opacity: 0; width: 0; height: 0; position: absolute;">
+                            </label>
+                        </div>
+
+                        <!-- Highlight Background Color Picker -->
+                        <div style="position: relative; display: inline-flex; align-items: center;" title="Highlight Color">
+                            <label style="margin: 0; cursor: pointer; display: flex; align-items: center; gap: 2px; font-size: 0.78rem; font-weight: 700; height: 28px; padding: 0 6px; border: 1px solid #cbd5e1; border-radius: 3px; background: #fff;">
+                                <span style="background: #fff3b0; padding: 0 2px;">🖍️</span>
+                                <input type="color" value="#fff3b0" onchange="execSvcCmd('hiliteColor', this.value)" style="opacity: 0; width: 0; height: 0; position: absolute;">
+                            </label>
+                        </div>
+
+                        <div style="width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px;"></div>
+
+                        <!-- Alignment -->
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('justifyLeft')" title="Align Left" style="width: 28px; height: 28px;">⇤</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('justifyCenter')" title="Align Center" style="width: 28px; height: 28px;">⇥⇤</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('justifyRight')" title="Align Right" style="width: 28px; height: 28px;">⇥</button>
+
+                        <div style="width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px;"></div>
+
+                        <!-- Bullet Points & Numbered Lists -->
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('insertUnorderedList')" title="Bullet Points List" style="padding: 0 8px; height: 28px; font-weight: 600; font-size: 0.75rem;">• Bullets</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('insertOrderedList')" title="Numbered List" style="padding: 0 8px; height: 28px; font-weight: 600; font-size: 0.75rem;">1. Numbered</button>
+
+                        <div style="width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px;"></div>
+
+                        <!-- Extras -->
+                        <button type="button" class="toolbar-btn" onclick="insertSvcLink()" title="Insert Link" style="width: 28px; height: 28px;">🔗</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('removeFormat')" title="Clear Formatting" style="width: 28px; height: 28px;">✕ Tx</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('undo')" title="Undo" style="width: 28px; height: 28px;">↺</button>
+                        <button type="button" class="toolbar-btn" onclick="execSvcCmd('redo')" title="Redo" style="width: 28px; height: 28px;">↻</button>
+                    </div>
+
+                    <!-- Visual Editable Area -->
+                    <div id="richServiceEditor" contenteditable="true" style="min-height: 200px; max-height: 420px; overflow-y: auto; padding: 1rem; font-family: var(--font-sans); font-size: 0.95rem; line-height: 1.8; color: var(--color-charcoal); outline: none;"></div>
+                    
+                    <!-- Raw HTML Textarea (hidden by default, toggled via source view) -->
+                    <textarea id="svc_desc" name="description" style="display: none; width: 100%; min-height: 200px; font-family: monospace; font-size: 0.85rem; padding: 1rem; border: none; outline: none; background: #222; color: #a5f3fc;"></textarea>
+                </div>
+                <small class="text-muted" style="font-size: 0.75rem; margin-top: 4px; display: block;">Supports bold text, bullet points, font sizing, headings, colors, and links for medical descriptions.</small>
             </div>
 
             <div class="form-group mb-3">
@@ -243,12 +328,102 @@
         </form>
     </div>
 </div>
+
+<style>
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0 4px;
+}
+.toolbar-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+#richServiceEditor:focus {
+    box-shadow: inset 0 0 0 2px rgba(184, 134, 11, 0.25);
+}
+#richServiceEditor blockquote {
+    border-left: 4px solid var(--color-gold, #B8860B);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: #555;
+}
+#richServiceEditor h2, #richServiceEditor h3, #richServiceEditor h4 {
+    font-family: var(--font-serif);
+    margin: 1rem 0 0.5rem;
+    color: var(--color-charcoal);
+}
+#richServiceEditor ul {
+    list-style-type: disc !important;
+    margin: 0.75rem 0 0.75rem 1.5rem !important;
+    padding-left: 0.5rem !important;
+}
+#richServiceEditor ol {
+    list-style-type: decimal !important;
+    margin: 0.75rem 0 0.75rem 1.5rem !important;
+    padding-left: 0.5rem !important;
+}
+#richServiceEditor li {
+    margin-bottom: 0.35rem;
+}
+</style>
 @endsection
 
 @section('scripts')
 <script>
+    let isServiceHtmlSourceMode = false;
     let currentGalleryImages = [];
     let currentGalleryVideos = [];
+
+    // Rich Text WYSIWYG helper functions for Treatment Description
+    function execSvcCmd(command, value = null) {
+        if (isServiceHtmlSourceMode) toggleServiceHtmlSourceMode();
+        const editor = document.getElementById('richServiceEditor');
+        editor.focus();
+        document.execCommand(command, false, value);
+    }
+
+    function execSvcFontSize(size) {
+        if (!size) return;
+        execSvcCmd('fontSize', size);
+    }
+
+    function insertSvcLink() {
+        const url = prompt('Enter web hyperlink URL:', 'https://');
+        if (url && url !== 'https://') {
+            execSvcCmd('createLink', url);
+        }
+    }
+
+    function toggleServiceHtmlSourceMode() {
+        const editor = document.getElementById('richServiceEditor');
+        const textarea = document.getElementById('svc_desc');
+        const btn = document.getElementById('svcHtmlToggleBtn');
+
+        if (!isServiceHtmlSourceMode) {
+            textarea.value = editor.innerHTML;
+            editor.style.display = 'none';
+            textarea.style.display = 'block';
+            btn.innerText = '👁️ Visual View';
+            isServiceHtmlSourceMode = true;
+        } else {
+            editor.innerHTML = textarea.value;
+            textarea.style.display = 'none';
+            editor.style.display = 'block';
+            btn.innerText = '</> Source View';
+            isServiceHtmlSourceMode = false;
+        }
+    }
 
     // Live Client-Side Realtime Search
     function filterServicesLive(query) {
@@ -399,12 +574,17 @@
     }
 
     function openNewServiceModal() {
+        if (isServiceHtmlSourceMode) {
+            toggleServiceHtmlSourceMode();
+        }
         document.getElementById('serviceForm').reset();
         document.getElementById('svc_id').value = '';
         document.getElementById('svc_featured_image').value = '';
         document.getElementById('svc_image_preview').src = '/images/logo.jpeg';
         document.getElementById('svc_downtime').value = 'Minimal';
         document.getElementById('svc_duration').value = '45 Minutes';
+        document.getElementById('richServiceEditor').innerHTML = '';
+        document.getElementById('svc_desc').value = '';
         if (document.getElementById('svc_add_video_link')) {
             document.getElementById('svc_add_video_link').value = '';
         }
@@ -422,6 +602,9 @@
     }
 
     function openEditServiceModal(svc) {
+        if (isServiceHtmlSourceMode) {
+            toggleServiceHtmlSourceMode();
+        }
         document.getElementById('svc_id').value = svc.id;
         document.getElementById('svc_title').value = svc.title || '';
         document.getElementById('svc_category').value = svc.category || 'skin';
@@ -432,7 +615,14 @@
         document.getElementById('svc_featured_image').value = svc.featured_image || '';
         document.getElementById('svc_image_preview').src = svc.featured_image || '/images/logo.jpeg';
         document.getElementById('svc_short_desc').value = svc.short_description || '';
-        document.getElementById('svc_desc').value = svc.description || '';
+        
+        let descContent = svc.description || '';
+        // If existing description is plain text with newlines (legacy format), convert newlines to paragraphs
+        if (descContent && !/<[a-z][\s\S]*>/i.test(descContent)) {
+            descContent = descContent.split(/\r\n|\r|\n/).map(line => line.trim() ? `<p>${line}</p>` : '').join('');
+        }
+        document.getElementById('richServiceEditor').innerHTML = descContent;
+        document.getElementById('svc_desc').value = descContent;
 
         if (document.getElementById('svc_add_video_link')) {
             document.getElementById('svc_add_video_link').value = '';
@@ -460,6 +650,9 @@
     }
 
     function closeServiceModal() {
+        if (isServiceHtmlSourceMode) {
+            toggleServiceHtmlSourceMode();
+        }
         document.getElementById('serviceModal').classList.remove('open');
     }
 
@@ -471,6 +664,15 @@
             addYouTubeVideoLink();
         }
 
+        // Sync rich text editor content with hidden svc_desc textarea
+        const editor = document.getElementById('richServiceEditor');
+        const textarea = document.getElementById('svc_desc');
+        if (!isServiceHtmlSourceMode && editor) {
+            textarea.value = editor.innerHTML;
+        } else if (isServiceHtmlSourceMode && textarea) {
+            editor.innerHTML = textarea.value;
+        }
+
         document.getElementById('svc_gallery_images').value = JSON.stringify(currentGalleryImages.filter(url => !url.startsWith('blob:')));
         document.getElementById('svc_gallery_videos').value = JSON.stringify(currentGalleryVideos.filter(url => !url.startsWith('blob:')));
 
@@ -480,6 +682,8 @@
         btn.innerText = id ? 'Updating...' : 'Saving...';
 
         const formData = new FormData(document.getElementById('serviceForm'));
+        // Explicitly set synchronized HTML description
+        formData.set('description', textarea.value);
         if (id) {
             formData.append('_method', 'PUT');
         }
