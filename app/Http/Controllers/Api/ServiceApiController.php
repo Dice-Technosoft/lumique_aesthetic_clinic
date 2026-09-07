@@ -48,7 +48,7 @@ class ServiceApiController extends Controller
             'featured_image' => 'nullable|string',
             'icon' => 'nullable|string',
             'status' => 'required|string|in:published,draft,archived',
-            'is_featured' => 'boolean',
+            'is_featured' => 'nullable',
             'benefits' => 'nullable',
             'procedure_steps' => 'nullable',
             'video_url' => 'nullable|string',
@@ -58,6 +58,8 @@ class ServiceApiController extends Controller
             'gallery_videos' => 'nullable',
             'video_files.*' => 'nullable|file|max:102400',
         ]);
+
+        $data['is_featured'] = $request->boolean('is_featured');
 
         if ($request->hasFile('image_file')) {
             $path = $request->file('image_file')->store('services', 'public');
@@ -160,6 +162,10 @@ class ServiceApiController extends Controller
             $data['status'] = 'published';
         }
 
+        if ($request->has('is_featured')) {
+            $data['is_featured'] = $request->boolean('is_featured');
+        }
+
         if ($request->hasFile('image_file')) {
             $path = $request->file('image_file')->store('services', 'public');
             $data['featured_image'] = '/storage/' . $path;
@@ -230,6 +236,48 @@ class ServiceApiController extends Controller
             'success' => true,
             'message' => 'Service updated successfully in database',
             'data' => $service,
+        ]);
+    }
+
+    public function toggleFeatured($id): JsonResponse
+    {
+        $service = is_numeric($id) ? Service::findOrFail($id) : Service::where('slug', $id)->firstOrFail();
+        $service->is_featured = !$service->is_featured;
+        $service->save();
+
+        $featuredCount = Service::where('is_featured', true)->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => $service->is_featured
+                ? "Treatment '{$service->title}' is now featured on the homepage!"
+                : "Treatment '{$service->title}' removed from homepage featured list.",
+            'is_featured' => $service->is_featured,
+            'featured_count' => $featuredCount,
+        ]);
+    }
+
+    public function updateFeatured(Request $request): JsonResponse
+    {
+        $request->validate([
+            'featured_ids' => 'present|array',
+            'featured_ids.*' => 'integer|exists:services,id',
+        ]);
+
+        $featuredIds = $request->input('featured_ids', []);
+
+        // Unfeature all treatments first
+        Service::query()->update(['is_featured' => false]);
+
+        // Feature the selected treatments
+        if (!empty($featuredIds)) {
+            Service::whereIn('id', $featuredIds)->update(['is_featured' => true]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Homepage Most Requested Treatments updated successfully!',
+            'featured_count' => count($featuredIds),
         ]);
     }
 

@@ -9,18 +9,18 @@
 <div class="admin-panel-card">
     <form onsubmit="handleSettingsSubmit(event)" id="settingsForm" enctype="multipart/form-data">
         @foreach($groupedSettings as $groupName => $settingsInGroup)
-        @if(in_array(strtolower($groupName), ['theme', 'seo', 'email']))
+        @if(in_array(strtolower($groupName), ['theme', 'seo', 'email', 'about_page']))
             @continue
         @endif
         <div class="settings-group-section">
-            <h3 class="settings-group-title">{{ $groupName === 'about_page' ? 'ABOUT PAGE CMS & CLINIC STORY' : strtoupper($groupName) . ' CONFIGURATION' }}</h3>
+            <h3 class="settings-group-title">{{ strtoupper($groupName) . ' CONFIGURATION' }}</h3>
             
             <div class="settings-inputs-grid">
                 @foreach($settingsInGroup as $setting)
                 @if(strtolower($groupName) === 'contact' && !in_array($setting->key, ['email', 'phone', 'whatsapp', 'address', 'working_hours', 'map_embed']))
                     @continue
                 @endif
-                <div class="form-group" style="{{ in_array($setting->key, ['about_hero_description', 'about_story_p1', 'about_story_p2', 'map_embed']) ? 'grid-column: span 2;' : '' }}">
+                <div class="form-group" style="{{ $setting->key === 'map_embed' ? 'grid-column: span 2;' : '' }}">
                     <label for="setting_{{ $setting->key }}">
                         @if($setting->key === 'email')
                             Clinic Contact Email
@@ -42,30 +42,6 @@
                             Clinic Brand Logo
                         @elseif($setting->key === 'favicon_url')
                             Favicon Icon
-                        @elseif($setting->key === 'about_hero_title')
-                            About Hero Main Title
-                        @elseif($setting->key === 'about_hero_description')
-                            About Hero Narrative Description
-                        @elseif($setting->key === 'about_story_subtitle')
-                            Clinic Story Subtitle
-                        @elseif($setting->key === 'about_story_title')
-                            Clinic Story Main Heading
-                        @elseif($setting->key === 'about_story_p1')
-                            Clinic Story (Paragraph 1)
-                        @elseif($setting->key === 'about_story_p2')
-                            Clinic Story (Paragraph 2)
-                        @elseif($setting->key === 'about_image_1')
-                            Clinic Ambience Photo (Primary 4:5 Portrait)
-                        @elseif($setting->key === 'about_image_2')
-                            Doctor Consultation Photo (Secondary Floating)
-                        @elseif($setting->key === 'about_mission_title')
-                            Mission Title
-                        @elseif($setting->key === 'about_mission_desc')
-                            Mission Description
-                        @elseif($setting->key === 'about_vision_title')
-                            Vision Title
-                        @elseif($setting->key === 'about_vision_desc')
-                            Vision Description
                         @else
                             {{ ucwords(str_replace('_', ' ', $setting->key)) }}
                         @endif

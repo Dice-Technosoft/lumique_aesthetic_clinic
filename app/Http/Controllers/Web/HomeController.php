@@ -28,7 +28,7 @@ class HomeController extends Controller
         $banner = Banner::where('status', true)->orderBy('sort_order', 'asc')->first();
         
         $doctor = TeamMember::where('is_lead', true)->first() ?? TeamMember::first();
-        $featuredServices = Service::published()->featured()->orderBy('sort_order', 'asc')->get();
+        $featuredServices = Service::published()->featured()->orderBy('sort_order', 'asc')->limit(6)->get();
         if ($featuredServices->isEmpty()) {
             $featuredServices = Service::published()->orderBy('sort_order', 'asc')->limit(6)->get();
         }

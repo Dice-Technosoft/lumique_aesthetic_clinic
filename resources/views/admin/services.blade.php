@@ -13,7 +13,11 @@
             <small class="text-muted">Manage clinical procedures, protocol steps, sub-images, videos, duration, downtime and pricing</small>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline-gold btn-sm" onclick="openFeaturedManagerModal()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap;">
+                <span style="font-size: 0.95rem; color: #D4AF37;">⭐</span>
+                <span>Most Requested on Home (<strong id="topFeaturedBadge">{{ $featuredCount }}</strong>/6)</span>
+            </button>
             <form action="{{ route('admin.services') }}" method="GET" class="admin-search-wrapper">
                 <span class="search-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -31,14 +35,15 @@
         <table class="admin-table" style="table-layout: fixed; width: 100%;">
             <thead>
                 <tr>
-                    <th style="width: 6%;">Image</th>
-                    <th style="width: 28%;">Treatment / Slug</th>
-                    <th style="width: 14%;">Category</th>
-                    <th style="width: 10%;">Duration</th>
-                    <th style="width: 10%;">Price</th>
-                    <th style="width: 8%; text-align: center;">Media</th>
-                    <th style="width: 10%; text-align: center;">Status</th>
-                    <th style="width: 14%; text-align: right;">Actions</th>
+                    <th style="width: 5%;">Image</th>
+                    <th style="width: 25%;">Treatment / Slug</th>
+                    <th style="width: 13%;">Category</th>
+                    <th style="width: 9%;">Duration</th>
+                    <th style="width: 9%;">Price</th>
+                    <th style="width: 13%; text-align: center;">Homepage Card</th>
+                    <th style="width: 7%; text-align: center;">Media</th>
+                    <th style="width: 8%; text-align: center;">Status</th>
+                    <th style="width: 11%; text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,6 +69,16 @@
                         @endif
                     </td>
                     <td><strong class="gold-text">{{ $svc->price_starting_at ?? 'Consultation' }}</strong></td>
+                    <td style="text-align: center;">
+                        <button type="button" 
+                                id="feat_btn_{{ $svc->id }}" 
+                                onclick="toggleFeaturedService({{ $svc->id }})" 
+                                class="btn-featured-toggle {{ $svc->is_featured ? 'is-featured' : '' }}" 
+                                title="{{ $svc->is_featured ? 'Showing on Homepage (Click to remove)' : 'Click to feature on Homepage' }}">
+                            <span class="feat-star">{{ $svc->is_featured ? '★' : '☆' }}</span>
+                            <span class="feat-label">{{ $svc->is_featured ? 'Most Requested' : 'Not Featured' }}</span>
+                        </button>
+                    </td>
                     <td style="text-align: center;">
                         @php
                             $imgCount = (!empty($svc->gallery_images) && is_array($svc->gallery_images)) ? count($svc->gallery_images) : 0;
@@ -97,11 +112,11 @@
                 </tr>
                 @empty
                 <tr id="empty-services-row">
-                    <td colspan="8" class="text-center py-5 text-muted">No treatments found in database.</td>
+                    <td colspan="9" class="text-center py-5 text-muted">No treatments found in database.</td>
                 </tr>
                 @endforelse
                 <tr id="no-services-live-matches-row" style="display: none;">
-                    <td colspan="8" class="text-center py-5 text-muted">
+                    <td colspan="9" class="text-center py-5 text-muted">
                         No clinical treatments found matching "<span id="liveServiceSearchQuery"></span>".
                     </td>
                 </tr>
@@ -164,6 +179,19 @@
                         <option value="archived">Archived</option>
                     </select>
                 </div>
+            </div>
+
+            <!-- Featured in Most Requested Treatments on Homepage -->
+            <div class="form-group mb-3" style="background: #fffdf5; border: 1px solid #f2e2be; padding: 0.85rem 1rem; border-radius: 6px;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; margin: 0; cursor: pointer;">
+                    <input type="checkbox" id="svc_is_featured" name="is_featured" value="1" style="width: 18px; height: 18px; accent-color: var(--color-gold); cursor: pointer;">
+                    <div>
+                        <strong style="color: var(--color-charcoal); font-size: 0.9rem;">Show in "Most Requested Treatments" on Homepage</strong>
+                        <div style="font-size: 0.78rem; color: var(--color-charcoal-muted); margin-top: 2px;">
+                            Display this procedure among the 6 signature treatment cards on the website homepage.
+                        </div>
+                    </div>
+                </label>
             </div>
 
             <!-- Primary Featured Image -->
@@ -329,7 +357,112 @@
     </div>
 </div>
 
+<!-- Modal: Manage Most Requested Treatments on Homepage -->
+<div class="modal-overlay" id="featuredManagerModal">
+    <div class="modal-card" style="max-width: 760px; max-height: 90vh; display: flex; flex-direction: column;">
+        <button type="button" class="modal-close" onclick="closeFeaturedManagerModal()">&times;</button>
+        <div class="modal-header" style="padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 0.5rem; margin: 0; font-family: var(--font-serif);">
+                        <span>⭐</span>
+                        <span>Homepage "Most Requested Treatments"</span>
+                    </h3>
+                    <p class="text-muted" style="font-size: 0.85rem; margin-top: 0.25rem;">
+                        Select the 6 treatments you want to showcase as signature cards on the homepage.
+                    </p>
+                </div>
+                <div id="featuredCountIndicator" style="padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; background: #faf5eb; color: #8c6d1f; border: 1px solid #f2e2be; transition: all 0.2s ease;">
+                    <span id="selectedCountNum">0</span> of 6 Selected
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); margin-bottom: 0.75rem;">
+            <input type="text" id="featuredSearchInput" placeholder="Quick filter treatments by title or category..." class="form-control form-control-sm" oninput="filterFeaturedList(this.value)">
+        </div>
+
+        <div id="featuredItemsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 4px; max-height: 52vh;">
+            @foreach($allServices as $item)
+            <label class="featured-picker-item {{ $item->is_featured ? 'selected' : '' }}" id="picker_item_{{ $item->id }}" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: 6px; cursor: pointer; transition: all 0.2s ease; background: #ffffff;">
+                <input type="checkbox" 
+                       class="featured-checkbox" 
+                       value="{{ $item->id }}" 
+                       {{ $item->is_featured ? 'checked' : '' }} 
+                       onchange="handleFeaturedCheckboxChange(this, {{ $item->id }})" 
+                       style="width: 18px; height: 18px; accent-color: var(--color-gold); cursor: pointer; flex-shrink: 0;">
+                
+                <img src="{{ $item->featured_image ?: '/images/logo.jpeg' }}" alt="{{ $item->title }}" style="width: 44px; height: 44px; border-radius: 4px; object-fit: cover; border: 1px solid #eee; flex-shrink: 0;">
+
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <strong style="color: var(--color-charcoal); font-size: 0.92rem;">{{ $item->title }}</strong>
+                        <span class="badge badge-neutral" style="font-size: 0.7rem; text-transform: uppercase;">{{ $item->category }}</span>
+                        @if($item->status !== 'published')
+                            <span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 0.68rem;">{{ ucfirst($item->status) }}</span>
+                        @endif
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--color-charcoal-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ $item->short_description ?: 'No short description' }}
+                    </div>
+                </div>
+
+                <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-weight: 700; color: var(--color-gold); font-size: 0.85rem;">{{ $item->price_starting_at ?? 'Consultation' }}</div>
+                    <span class="featured-slot-badge" style="font-size: 0.75rem; color: {{ $item->is_featured ? '#8c6d1f' : '#94a3b8' }}; font-weight: 700;">
+                        {{ $item->is_featured ? '★ Most Requested' : 'Not on Home' }}
+                    </span>
+                </div>
+            </label>
+            @endforeach
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--color-border); flex-wrap: wrap; gap: 0.75rem;">
+            <div style="font-size: 0.8rem; color: var(--color-charcoal-muted);">
+                💡 Tip: We recommend selecting <strong>6 treatments</strong> to fill the 3-column homepage card grid.
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-outline-gold btn-sm" onclick="closeFeaturedManagerModal()">Cancel</button>
+                <button type="button" id="saveFeaturedBulkBtn" class="btn btn-gold btn-sm" onclick="saveFeaturedSelection()">Save Homepage Treatments</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
+.btn-featured-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.btn-featured-toggle:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #334155;
+}
+.btn-featured-toggle.is-featured {
+    background: #fef9c3;
+    border-color: #fde047;
+    color: #854d0e;
+}
+.btn-featured-toggle.is-featured .feat-star {
+    color: #ca8a04;
+    font-size: 0.9rem;
+}
+.featured-picker-item.selected {
+    background: #fffdf5 !important;
+    border-color: #eab308 !important;
+}
 .toolbar-btn {
     display: inline-flex;
     align-items: center;
@@ -583,6 +716,7 @@
         document.getElementById('svc_image_preview').src = '/images/logo.jpeg';
         document.getElementById('svc_downtime').value = 'Minimal';
         document.getElementById('svc_duration').value = '45 Minutes';
+        document.getElementById('svc_is_featured').checked = false;
         document.getElementById('richServiceEditor').innerHTML = '';
         document.getElementById('svc_desc').value = '';
         if (document.getElementById('svc_add_video_link')) {
@@ -612,6 +746,7 @@
         document.getElementById('svc_duration').value = svc.duration || '45 Minutes';
         document.getElementById('svc_downtime').value = svc.downtime || 'Minimal';
         document.getElementById('svc_status').value = svc.status || 'published';
+        document.getElementById('svc_is_featured').checked = Boolean(svc.is_featured);
         document.getElementById('svc_featured_image').value = svc.featured_image || '';
         document.getElementById('svc_image_preview').src = svc.featured_image || '/images/logo.jpeg';
         document.getElementById('svc_short_desc').value = svc.short_description || '';
@@ -684,6 +819,8 @@
         const formData = new FormData(document.getElementById('serviceForm'));
         // Explicitly set synchronized HTML description
         formData.set('description', textarea.value);
+        // Explicitly set is_featured status
+        formData.set('is_featured', document.getElementById('svc_is_featured').checked ? '1' : '0');
         if (id) {
             formData.append('_method', 'PUT');
         }
@@ -760,6 +897,168 @@
                 showToast('Network error deleting treatment', 'error');
             }
         });
+    }
+
+    // --- Homepage "Most Requested Treatments" Dynamic Management ---
+
+    function updateFeaturedCountDisplay() {
+        const checkedBoxes = document.querySelectorAll('.featured-checkbox:checked');
+        const count = checkedBoxes.length;
+        const countNum = document.getElementById('selectedCountNum');
+        const indicator = document.getElementById('featuredCountIndicator');
+        const topBadge = document.getElementById('topFeaturedBadge');
+        
+        if (countNum) countNum.innerText = count;
+        if (topBadge) topBadge.innerText = count;
+
+        if (indicator) {
+            if (count === 6) {
+                indicator.style.background = '#eaf7ec';
+                indicator.style.color = '#1f6f2a';
+                indicator.style.borderColor = '#c2e8c8';
+                indicator.innerHTML = `✓ Exactly 6 Selected (Perfect)`;
+            } else if (count > 6) {
+                indicator.style.background = '#fef2f2';
+                indicator.style.color = '#991b1b';
+                indicator.style.borderColor = '#fecaca';
+                indicator.innerHTML = `⚠️ ${count} of 6 Selected (Limit is 6)`;
+            } else {
+                indicator.style.background = '#faf5eb';
+                indicator.style.color = '#8c6d1f';
+                indicator.style.borderColor = '#f2e2be';
+                indicator.innerHTML = `<span id="selectedCountNum">${count}</span> of 6 Selected`;
+            }
+        }
+    }
+
+    function openFeaturedManagerModal() {
+        updateFeaturedCountDisplay();
+        const searchInput = document.getElementById('featuredSearchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            filterFeaturedList('');
+        }
+        document.getElementById('featuredManagerModal').classList.add('open');
+    }
+
+    function closeFeaturedManagerModal() {
+        document.getElementById('featuredManagerModal').classList.remove('open');
+    }
+
+    function handleFeaturedCheckboxChange(checkbox, id) {
+        const card = document.getElementById(`picker_item_${id}`);
+        const badge = card ? card.querySelector('.featured-slot-badge') : null;
+        if (checkbox.checked) {
+            if (card) card.classList.add('selected');
+            if (badge) {
+                badge.innerText = '★ Most Requested';
+                badge.style.color = '#ca8a04';
+            }
+        } else {
+            if (card) card.classList.remove('selected');
+            if (badge) {
+                badge.innerText = 'Not on Home';
+                badge.style.color = '#94a3b8';
+            }
+        }
+        updateFeaturedCountDisplay();
+    }
+
+    function filterFeaturedList(val) {
+        const query = val.toLowerCase().trim();
+        const items = document.querySelectorAll('.featured-picker-item');
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = (!query || text.includes(query)) ? 'flex' : 'none';
+        });
+    }
+
+    async function toggleFeaturedService(id) {
+        const btn = document.getElementById(`feat_btn_${id}`);
+        if (!btn) return;
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+
+        try {
+            const res = await fetch(`/api/v1/admin/services/${id}/toggle-featured`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                if (data.is_featured) {
+                    btn.classList.add('is-featured');
+                    btn.querySelector('.feat-star').innerText = '★';
+                    btn.querySelector('.feat-label').innerText = 'Most Requested';
+                    btn.title = 'Showing on Homepage (Click to remove)';
+                } else {
+                    btn.classList.remove('is-featured');
+                    btn.querySelector('.feat-star').innerText = '☆';
+                    btn.querySelector('.feat-label').innerText = 'Not Featured';
+                    btn.title = 'Click to feature on Homepage';
+                }
+                
+                const topBadge = document.getElementById('topFeaturedBadge');
+                if (topBadge && typeof data.featured_count !== 'undefined') {
+                    topBadge.innerText = data.featured_count;
+                }
+
+                // Sync modal checkbox as well
+                const modalCb = document.querySelector(`.featured-checkbox[value="${id}"]`);
+                if (modalCb) {
+                    modalCb.checked = Boolean(data.is_featured);
+                    handleFeaturedCheckboxChange(modalCb, id);
+                }
+
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Failed to toggle featured status', 'error');
+            }
+        } catch(err) {
+            showToast('Network error updating featured status', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    async function saveFeaturedSelection() {
+        const btn = document.getElementById('saveFeaturedBulkBtn');
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+
+        const checkedBoxes = document.querySelectorAll('.featured-checkbox:checked');
+        const featured_ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
+
+        try {
+            const res = await fetch('/api/v1/admin/services/featured', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ featured_ids })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeFeaturedManagerModal();
+                setTimeout(() => location.reload(), 700);
+            } else {
+                showToast(data.message || 'Failed to save featured selection', 'error');
+            }
+        } catch(err) {
+            showToast('Network error saving featured treatments', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Save Homepage Treatments';
+        }
     }
 </script>
 @endsection

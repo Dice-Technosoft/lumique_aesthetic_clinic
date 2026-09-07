@@ -78,6 +78,8 @@ Route::prefix('v1')->group(function () {
         // Treatments & Procedures Catalog
         Route::get('/services', [ServiceApiController::class, 'index']);
         Route::post('/services', [ServiceApiController::class, 'store']);
+        Route::post('/services/featured', [ServiceApiController::class, 'updateFeatured']);
+        Route::post('/services/{service}/toggle-featured', [ServiceApiController::class, 'toggleFeatured']);
         Route::put('/services/{service}', [ServiceApiController::class, 'update']);
         Route::delete('/services/{service}', [ServiceApiController::class, 'destroy']);
 

@@ -145,7 +145,9 @@ class AdminWebController extends Controller
 
         $services = $query->paginate(10)->withQueryString();
         $categories = ServiceCategory::where('status', true)->orderBy('sort_order', 'asc')->get();
-        return view('admin.services', compact('services', 'categories', 'search', 'category'));
+        $allServices = Service::orderBy('is_featured', 'desc')->orderBy('sort_order', 'asc')->get();
+        $featuredCount = Service::where('is_featured', true)->count();
+        return view('admin.services', compact('services', 'categories', 'search', 'category', 'allServices', 'featuredCount'));
     }
 
     public function videos(Request $request): View
