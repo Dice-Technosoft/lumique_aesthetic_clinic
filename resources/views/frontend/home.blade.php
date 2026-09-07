@@ -64,11 +64,15 @@
 
 <!-- Dynamic Clinic Snapshot Bar -->
 @php
+    $workingHoursLines = !empty($settings['working_hours']) ? array_values(array_filter(array_map('trim', explode("\n", $settings['working_hours'])))) : [];
+    $defaultHoursTitle = !empty($workingHoursLines[0]) ? $workingHoursLines[0] : 'Mon – Sat: 9:00 AM – 7:00 PM';
+    $defaultHoursDesc = !empty($workingHoursLines[1]) ? $workingHoursLines[1] : 'Sunday: By Special Appointment';
+
     $snapshotSection = $sections['snapshot'] ?? null;
     $snapshotItems = $snapshotSection->settings['items'] ?? [
         ['label' => 'Visit Lumique', 'title' => 'Your confidence, cared for.', 'desc' => 'A calm, elevated clinic sanctuary built around your goals.'],
         ['label' => 'Call Us', 'title' => $settings['phone'] ?? '+91 88795 50581', 'desc' => 'Personal guidance from our dermatological team.'],
-        ['label' => 'Opening Hours', 'title' => 'Mon – Sat: 9AM – 7PM', 'desc' => 'Sunday: By Special Appointment'],
+        ['label' => 'Opening Hours', 'title' => $defaultHoursTitle, 'desc' => $defaultHoursDesc],
         ['label' => 'Start Your Journey', 'title' => 'Ready when you are.', 'cta' => 'Book a consultation', 'dark' => true],
     ];
 @endphp

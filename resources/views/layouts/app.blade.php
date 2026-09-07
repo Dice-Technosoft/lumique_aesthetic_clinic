@@ -30,15 +30,15 @@
                 ],
                 'image' => url($siteLogo),
                 'description' => $settings['default_meta_description'] ?? 'Personalized skin, hair, laser, and aesthetic treatments delivered by expert board-certified dermatologists.',
-                'telephone' => $settings['contact_phone'] ?? '+91 98765 43210',
-                'email' => $settings['contact_email'] ?? 'contact@lumiqueclinic.com',
+                'telephone' => $settings['phone'] ?? '+91 88795 50581',
+                'email' => $settings['email'] ?? 'info@lumiqueclinic.com',
                 'priceRange' => '$$$',
                 'address' => [
                     '@type' => 'PostalAddress',
-                    'streetAddress' => $settings['clinic_address'] ?? 'Ground Floor, Luxury Promenade, Bandra West',
+                    'streetAddress' => $settings['address'] ?? 'Silver Strip Cooperative Housing Society, AS3, Vakola Pipeline Rd, Vakola, Santacruz East, Mumbai',
                     'addressLocality' => 'Mumbai',
                     'addressRegion' => 'Maharashtra',
-                    'postalCode' => '400050',
+                    'postalCode' => '400055',
                     'addressCountry' => 'IN',
                 ],
             ],
@@ -268,7 +268,7 @@
                     </div>
                     <div class="footer-contact-item">
                         <i data-lucide="clock" class="footer-contact-icon" style="width: 16px; height: 16px;"></i>
-                        <span>Mon – Sat: 9:00 AM – 7:00 PM</span>
+                        <span>{!! !empty($settings['working_hours']) ? nl2br(e($settings['working_hours'])) : 'Mon – Sat: 9:00 AM – 7:00 PM<br>Sunday: Closed' !!}</span>
                     </div>
                 </div>
             </div>

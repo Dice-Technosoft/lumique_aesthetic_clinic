@@ -17,10 +17,10 @@
             
             <div class="settings-inputs-grid">
                 @foreach($settingsInGroup as $setting)
-                @if(strtolower($groupName) === 'contact' && !in_array($setting->key, ['email', 'phone', 'whatsapp', 'address', 'working_hours']))
+                @if(strtolower($groupName) === 'contact' && !in_array($setting->key, ['email', 'phone', 'whatsapp', 'address', 'working_hours', 'map_embed']))
                     @continue
                 @endif
-                <div class="form-group" style="{{ in_array($setting->key, ['about_hero_description', 'about_story_p1', 'about_story_p2']) ? 'grid-column: span 2;' : '' }}">
+                <div class="form-group" style="{{ in_array($setting->key, ['about_hero_description', 'about_story_p1', 'about_story_p2', 'map_embed']) ? 'grid-column: span 2;' : '' }}">
                     <label for="setting_{{ $setting->key }}">
                         @if($setting->key === 'email')
                             Clinic Contact Email
@@ -32,6 +32,8 @@
                             Clinic Address
                         @elseif($setting->key === 'working_hours')
                             Working Hours
+                        @elseif($setting->key === 'map_embed')
+                            Google Maps Embed Code / URL
                         @elseif($setting->key === 'site_name')
                             Clinic Name
                         @elseif($setting->key === 'tagline')

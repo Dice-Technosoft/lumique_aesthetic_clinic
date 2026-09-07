@@ -40,7 +40,7 @@
                 <div><strong>Procedure / Interest:</strong> {{ $inquiry->service_name ?: 'Aesthetic Consultation' }}</div>
                 <div><strong>Requested Date:</strong> {{ $inquiry->preferred_date ? $inquiry->preferred_date->format('l, F d, Y') : 'Earliest Available' }}</div>
                 <div><strong>Preferred Time Slot:</strong> {{ $inquiry->preferred_time ?: 'Flexible' }}</div>
-                <div><strong>Clinic Location:</strong> Kenilworth Mall, Linking Road, Bandra West, Mumbai</div>
+                <div><strong>Clinic Location:</strong> {{ $settings['address'] ?? 'Silver Strip Cooperative Housing Society, AS3, Vakola Pipeline Rd, Vakola, Santacruz East, Mumbai' }}</div>
             </div>
 
             <div class="notice-box">
@@ -49,16 +49,16 @@
 
             <p>If you wish to make changes or connect directly with our front desk:</p>
             <div class="btn-holder">
-                <a href="https://wa.me/918879550581?text=Hello%20Lumique%20Clinic,%20I%20have%20requested%20an%20appointment%20for%20{{ urlencode($inquiry->name) }}." class="btn">Chat with Concierge</a>
+                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $settings['whatsapp'] ?? '918879550581') }}?text=Hello%20Lumique%20Clinic,%20I%20have%20requested%20an%20appointment%20for%20{{ urlencode($inquiry->name) }}." class="btn">Chat with Concierge</a>
             </div>
 
             <p style="margin-top: 25px;">We look forward to welcoming you to our clinic sanctuary.<br>
-            <strong>Dr. Alisha Vance & The Lumique Medical Team</strong></p>
+            <strong>The {{ $settings['site_name'] ?? 'Lumique' }} Medical Team</strong></p>
         </div>
         <div class="footer">
-            Ground Floor, Kenilworth Mall, Linking Road, Bandra West, Mumbai 400050<br>
-            Phone: +91 88795 50581 &bull; Email: info@lumiqueclinic.com<br>
-            &copy; {{ date('Y') }} Lumique Aesthetic Clinic. All rights reserved.
+            {{ $settings['address'] ?? 'Silver Strip Cooperative Housing Society, AS3, Vakola Pipeline Rd, Vakola, Santacruz East, Mumbai' }}<br>
+            Phone: {{ $settings['phone'] ?? '+91 88795 50581' }} &bull; Email: {{ $settings['email'] ?? 'info@lumiqueclinic.com' }}<br>
+            &copy; {{ date('Y') }} {{ $settings['site_name'] ?? 'Lumique Aesthetic Clinic' }}. All rights reserved.
         </div>
     </div>
 </body>

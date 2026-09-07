@@ -66,20 +66,28 @@
             </div>
             <div>
               <strong style="display: block; margin-bottom: 0.25rem;">Consultation Hours</strong>
-              <p class="body-text" style="font-size: 0.9rem;">Monday – Saturday: 9:00 AM – 7:00 PM<br>Sunday: Closed</p>
+              <p class="body-text" style="font-size: 0.9rem;">{!! !empty($settings['working_hours']) ? nl2br(e($settings['working_hours'])) : 'Monday – Saturday: 9:00 AM – 7:00 PM<br>Sunday: Closed' !!}</p>
             </div>
           </div>
         </div>
 
         <!-- Google Maps Embed Frame -->
         <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--color-border); box-shadow: var(--shadow-subtle);">
-          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.189736856401!2d72.83350107593259!3d19.055375752627964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c917b1897c8b%3A0xc4f5d688001fa385!2sLinking%20Rd%2C%20Bandra%20West%2C%20Mumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
-                  width="100%" 
-                  height="260" 
-                  style="border:0;" 
-                  allowfullscreen="" 
-                  loading="lazy">
-          </iframe>
+          @if(!empty($settings['map_embed']))
+            @if(str_starts_with(trim($settings['map_embed']), '<iframe'))
+              {!! $settings['map_embed'] !!}
+            @else
+              <iframe src="{{ $settings['map_embed'] }}" width="100%" height="260" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            @endif
+          @else
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.189736856401!2d72.83350107593259!3d19.055375752627964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c917b1897c8b%3A0xc4f5d688001fa385!2sLinking%20Rd%2C%20Bandra%20West%2C%20Mumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
+                    width="100%" 
+                    height="260" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+            </iframe>
+          @endif
         </div>
       </div>
 
@@ -170,7 +178,7 @@
       alertBox.style.background = '#fdebee';
       alertBox.style.color = '#c8101e';
       alertBox.style.border = '1px solid #f9cdd3';
-      alertBox.innerHTML = 'Failed to submit. Please call us directly at +91 88795 50581.';
+      alertBox.innerHTML = 'Failed to submit. Please call us directly at {{ $settings['phone'] ?? '+91 88795 50581' }}.';
       alertBox.style.display = 'block';
     } finally {
       btn.disabled = false;
