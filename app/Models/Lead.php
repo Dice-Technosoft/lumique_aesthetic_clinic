@@ -68,4 +68,19 @@ class Lead extends Model
     {
         return $this->hasMany(LeadActivity::class)->latest();
     }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Lead $lead) {
+            if ($lead->isForceDeleting()) {
+                $lead->followups()->forceDelete();
+                $lead->notesList()->forceDelete();
+                $lead->activities()->forceDelete();
+            } else {
+                $lead->followups()->delete();
+                $lead->notesList()->delete();
+                $lead->activities()->delete();
+            }
+        });
+    }
 }

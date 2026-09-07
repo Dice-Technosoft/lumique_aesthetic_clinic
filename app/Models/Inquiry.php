@@ -49,4 +49,18 @@ class Inquiry extends Model
     {
         return $this->hasOne(Lead::class);
     }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Inquiry $inquiry) {
+            $leads = Lead::where('inquiry_id', $inquiry->id)->get();
+            foreach ($leads as $lead) {
+                if ($inquiry->isForceDeleting()) {
+                    $lead->forceDelete();
+                } else {
+                    $lead->delete();
+                }
+            }
+        });
+    }
 }

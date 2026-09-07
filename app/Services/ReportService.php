@@ -21,19 +21,39 @@ class ReportService
     {
         $today = now()->toDateString();
 
-        $totalInquiries = Inquiry::count();
-        $newInquiries = Inquiry::where('status', 'new')->count();
-        $todayInquiries = Inquiry::whereDate('created_at', $today)->count();
+        // Automatically clean up any orphaned followups whose lead was deleted
+        try {
+            LeadFollowUp::whereDoesntHave('lead')->delete();
+        } catch (\Throwable $e) {
+            // Silently continue
+        }
 
-        $appointmentRequests = Inquiry::where('type', 'appointment')->count();
-        $todayAppointments = Inquiry::where('type', 'appointment')->whereDate('created_at', $today)->count();
+        $totalInquiries = Inquiry::whereNull('deleted_at')->count();
+        $newInquiries = Inquiry::whereNull('deleted_at')->where('status', 'new')->count();
+        $todayInquiries = Inquiry::whereNull('deleted_at')->whereDate('created_at', $today)->count();
 
-        $totalLeads = Lead::count();
-        $convertedLeads = Lead::where('status', 'converted')->count() + Inquiry::where('status', 'converted')->count();
+        $appointmentRequests = Inquiry::whereNull('deleted_at')->where('type', 'appointment')->count();
+        $todayAppointments = Inquiry::whereNull('deleted_at')->where('type', 'appointment')->whereDate('created_at', $today)->count();
 
-        $pendingFollowups = LeadFollowUp::where('status', 'pending')->count();
-        $todayFollowups = LeadFollowUp::where('status', 'pending')->whereDate('follow_up_date', $today)->count();
-        $overdueFollowups = LeadFollowUp::where('status', 'pending')->whereDate('follow_up_date', '<', $today)->count();
+        $totalLeads = Lead::whereNull('deleted_at')->count();
+        $convertedLeads = Lead::whereNull('deleted_at')->where('status', 'converted')->count() 
+            + Inquiry::whereNull('deleted_at')->where('status', 'converted')->count();
+
+        $pendingFollowups = LeadFollowUp::where('status', 'pending')
+            ->whereHas('lead', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->count();
+        $todayFollowups = LeadFollowUp::where('status', 'pending')
+            ->whereHas('lead', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->whereDate('follow_up_date', $today)->count();
+        $overdueFollowups = LeadFollowUp::where('status', 'pending')
+            ->whereHas('lead', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->whereDate('follow_up_date', '<', $today)->count();
 
         $publishedServices = Service::published()->count();
         $activeCategories = ServiceCategory::where('status', true)->count();
@@ -68,9 +88,12 @@ class ReportService
             'published_pages' => $publishedPages,
 
             // Live Activity Feeds
-            'recent_inquiries' => Inquiry::with('service')->latest()->limit(6)->get(),
+            'recent_inquiries' => Inquiry::whereNull('deleted_at')->with('service')->latest()->limit(6)->get(),
             'upcoming_followups' => LeadFollowUp::with('lead', 'assignedUser')
                 ->where('status', 'pending')
+                ->whereHas('lead', function ($q) {
+                    $q->whereNull('deleted_at');
+                })
                 ->orderBy('follow_up_date', 'asc')
                 ->limit(5)
                 ->get(),

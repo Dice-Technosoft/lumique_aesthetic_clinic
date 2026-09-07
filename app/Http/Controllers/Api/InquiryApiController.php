@@ -135,23 +135,39 @@ class InquiryApiController extends Controller
         $id = $inquiry->id;
         $name = $inquiry->name;
 
+        // Explicitly cascade delete all associated leads and their CRM followups
+        $leads = \App\Models\Lead::where('inquiry_id', $id)->get();
+        foreach ($leads as $lead) {
+            \App\Models\LeadFollowUp::where('lead_id', $lead->id)->delete();
+            \App\Models\LeadNote::where('lead_id', $lead->id)->delete();
+            \App\Models\LeadActivity::where('lead_id', $lead->id)->delete();
+            $lead->delete();
+        }
+
         if ($inquiry->lead) {
+            \App\Models\LeadFollowUp::where('lead_id', $inquiry->lead->id)->delete();
+            \App\Models\LeadNote::where('lead_id', $inquiry->lead->id)->delete();
+            \App\Models\LeadActivity::where('lead_id', $inquiry->lead->id)->delete();
             $inquiry->lead->delete();
         }
 
         $inquiry->delete();
 
-        ActivityLog::create([
-            'user_id' => $request->user()?->id,
-            'module' => 'inquiries',
-            'action' => 'inquiry_deleted',
-            'record_id' => $id,
-            'notes' => "Deleted inquiry #{$id} ({$name})",
-        ]);
+        try {
+            ActivityLog::create([
+                'user_id' => $request->user()?->id,
+                'module' => 'inquiries',
+                'action' => 'inquiry_deleted',
+                'record_id' => $id,
+                'new_values' => ['name' => $name, 'action' => "Deleted inquiry #{$id} ({$name})"],
+            ]);
+        } catch (\Throwable $e) {
+            // Ignore activity log creation failure
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Inquiry deleted successfully',
+            'message' => 'Inquiry and all associated CRM records deleted successfully',
         ]);
     }
 

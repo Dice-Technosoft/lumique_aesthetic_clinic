@@ -197,11 +197,14 @@ class LeadApiController extends Controller
 
     public function destroy(Lead $lead): JsonResponse
     {
+        \App\Models\LeadFollowUp::where('lead_id', $lead->id)->delete();
+        \App\Models\LeadNote::where('lead_id', $lead->id)->delete();
+        \App\Models\LeadActivity::where('lead_id', $lead->id)->delete();
         $lead->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Lead deleted successfully from database',
+            'message' => 'Lead and all associated CRM records deleted successfully',
         ]);
     }
 
